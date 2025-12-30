@@ -1,39 +1,47 @@
 ###
 
-GET http://localhost:3000/movie
+GET http://localhost:3000/recipes
 
 ###
 
-GET http://localhost:3000/movie?releaseYear=2010
+GET http://localhost:3000/recipes?difficulty=easy
 
 ###
 
-GET http://localhost:3000/movie/69133c28251f35bcbc4206a6
+GET http://localhost:3000/recipes/RECIPE_ID
 
 
 ###
 
-POST http://localhost:3000/movie
+POST http://localhost:3000/recipes
 Authorization: Bearer your_jwt_token_here
 Content-Type: application/json
 
 {
-  "title": "Inception",
-  "releaseYear": 2010
+  "title": "Spaghetti Carbonara",
+  "ingredients": ["Pasta", "Eggs", "Pancetta", "Parmesan"],
+  "steps": ["Boil pasta", "Cook pancetta", "Combine with eggs and cheese"],
+  "cookingTime": 30,
+  "imageCover": "cover.jpg",
+  "difficulty": "medium"
 }
 
 ###
 
-DELETE http://localhost:3000/movie/69133c28251f35bcbc4206a6
+DELETE http://localhost:3000/recipes/RECIPE_ID
 
 ###
 
-PUT http://localhost:3000/movie/69133cc67e0a6f1ddc7f1ec7
+PUT http://localhost:3000/recipes/RECIPE_ID
 Content-Type: application/json
 
 {
-  "title": "Star Wars",
-  "releaseYear": 1999
+  "title": "Updated Carbonara",
+  "ingredients": ["Pasta", "Eggs", "Pancetta", "Parmesan", "Pepper"],
+  "steps": ["Boil pasta", "Cook pancetta", "Combine"],
+  "cookingTime": 28,
+  "imageCover": "cover-updated.jpg",
+  "difficulty": "easy"
 }
 
 

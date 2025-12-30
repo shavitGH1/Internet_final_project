@@ -4,7 +4,7 @@ const app = express();
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.dev" });
-import recipeRoutes from "./routes/recipesRoutes"; // השם של המשתנה שונה מ-movieRoutes ל-recipeRoutes
+import recipeRoutes from "./routes/recipesRoutes"; // recipes router
 import commentRoutes from "./routes/commentRoutes";
 import authRoutes from "./routes/authRoutes";
 import { specs, swaggerUi } from "./swagger";
@@ -27,7 +27,7 @@ const intApp = () => {
       res.send(specs);
     });
 
-    app.use("/recipes", recipeRoutes); // הנתיב שונה מ-/movie ל-/recipes
+    app.use("/recipes", recipeRoutes); // recipes endpoints
     app.use("/comment", commentRoutes);
     app.use("/auth", authRoutes);
 

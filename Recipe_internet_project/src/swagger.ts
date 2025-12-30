@@ -5,9 +5,9 @@ const options: swaggerJsdoc.Options = {
     definition: {
         openapi: "3.0.0",
         info: {
-            title: "Movie & Comments REST API",
+            title: "Recipe & Comments REST API",
             version: "1.0.0",
-            description: "A REST API for managing movies and comments with user authentication",
+            description: "A REST API for managing recipes and comments with user authentication",
             contact: {
                 name: "Menachi",
                 email: "developer@example.com",
@@ -52,49 +52,82 @@ const options: swaggerJsdoc.Options = {
                         },
                     },
                 },
-                Movie: {
+                Recipe: {
                     type: "object",
-                    required: ["title", "releaseYear", "createdBy"],
+                    required: ["title", "ingredients", "steps", "cookingTime", "imageCover", "difficulty", "user"],
                     properties: {
                         _id: {
                             type: "string",
-                            description: "Movie unique identifier",
+                            description: "Recipe unique identifier",
                             example: "507f1f77bcf86cd799439011",
                         },
                         title: {
                             type: "string",
-                            description: "Movie title",
-                            example: "The Matrix",
+                            description: "Recipe title",
+                            example: "Spaghetti Carbonara",
                         },
-                        releaseYear: {
+                        ingredients: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of ingredients",
+                            example: ["Pasta", "Eggs", "Pancetta", "Parmesan"],
+                        },
+                        steps: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "Step-by-step cooking instructions",
+                            example: ["Boil pasta", "Cook pancetta", "Combine with eggs and cheese"],
+                        },
+                        cookingTime: {
                             type: "number",
-                            description: "Year the movie was released",
-                            example: 1999,
+                            description: "Cooking time in minutes",
+                            example: 30,
                         },
-                        createdBy: {
+                        imageCover: {
                             type: "string",
-                            description: "ID of the user who created this movie entry",
+                            description: "Image URL for the recipe",
+                            example: "https://example.com/recipe.jpg",
+                        },
+                        difficulty: {
+                            type: "string",
+                            enum: ["easy", "medium", "difficult"],
+                            description: "Difficulty level",
+                            example: "medium",
+                        },
+                        ratingsAverage: {
+                            type: "number",
+                            description: "Average rating",
+                            example: 4.5,
+                        },
+                        ratingsQuantity: {
+                            type: "number",
+                            description: "Number of ratings",
+                            example: 12,
+                        },
+                        user: {
+                            type: "string",
+                            description: "ID of the user who created this recipe",
                             example: "507f1f77bcf86cd799439011",
                         },
                     },
                 },
                 Comment: {
                     type: "object",
-                    required: ["message", "movieId", "writerId"],
+                    required: ["comment", "recipe", "writerId"],
                     properties: {
                         _id: {
                             type: "string",
                             description: "Comment unique identifier",
                             example: "507f1f77bcf86cd799439011",
                         },
-                        message: {
+                        comment: {
                             type: "string",
                             description: "Comment message content",
-                            example: "Great movie! Loved the special effects.",
+                            example: "Great recipe! Loved the flavors.",
                         },
-                        movieId: {
+                        recipe: {
                             type: "string",
-                            description: "ID of the movie this comment belongs to",
+                            description: "ID of the recipe this comment belongs to",
                             example: "507f1f77bcf86cd799439011",
                         },
                         writerId: {
