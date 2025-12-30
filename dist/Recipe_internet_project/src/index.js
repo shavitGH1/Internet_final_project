@@ -9,7 +9,7 @@ const app = (0, express_1.default)();
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({ path: ".env.dev" });
-const recipesRoutes_1 = __importDefault(require("./routes/recipesRoutes")); // השם של המשתנה שונה מ-movieRoutes ל-recipeRoutes
+const recipesRoutes_1 = __importDefault(require("./routes/recipesRoutes")); // recipes router
 const commentRoutes_1 = __importDefault(require("./routes/commentRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const swagger_1 = require("./swagger");
@@ -28,7 +28,7 @@ const intApp = () => {
             res.setHeader("Content-Type", "application/json");
             res.send(swagger_1.specs);
         });
-        app.use("/recipes", recipesRoutes_1.default); // הנתיב שונה מ-/movie ל-/recipes
+        app.use("/recipes", recipesRoutes_1.default); // recipes endpoints
         app.use("/comment", commentRoutes_1.default);
         app.use("/auth", authRoutes_1.default);
         const dbUri = process.env.MONGODB_URI;

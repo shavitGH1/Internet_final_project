@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const recipeController_1 = __importDefault(require("./../controllers/recipeController"));
-const authController_1 = __importDefault(require("./../controllers/authController"));
+const recipeController_1 = __importDefault(require("../controllers/recipeController"));
+const authController_1 = __importDefault(require("../controllers/authController"));
 const commentRoutes_1 = __importDefault(require("./commentRoutes")); // ייבוא הראוטר של התגובות
 const router = express_1.default.Router();
 router.use('/:recipeId/comments', commentRoutes_1.default);
