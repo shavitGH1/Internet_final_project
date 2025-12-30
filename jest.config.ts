@@ -3,5 +3,5 @@ export default {
   preset: "ts-jest",
   testEnvironment: "node",
   setupFiles: ["./jest.setup.ts"],
-  roots: ["<rootDir>/src/tests/"],
+  roots: ["<rootDir>/Recipe_internet_project/src/tests/"],
 };

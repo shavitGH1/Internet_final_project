@@ -4,13 +4,13 @@
   "description": "Recipe sharing application backend",
   "main": "src/index.ts",
   "scripts": {
-    "start": "tsc && node --env-file=.env.dev ./dist/src/server.js",
-    "dev": "dotenv -e ./back_a-main/.env.dev nodemon --exec ts-node ./back_a-main/src/server.ts",
+    "start": "tsc && node --env-file=.env.dev ./dist/Recipe_internet_project/src/server.js",
+    "dev": "dotenv -e ./Recipe_internet_project/.env.dev nodemon --exec ts-node ./Recipe_internet_project/src/server.ts",
     "lint": "eslint . --ext .ts",
     "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
-    "testcomment": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/comments.test.ts",
-    "testrecipe": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/recipes.test.ts",
-    "testauth": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/auth.test.ts"
+    "testcomment": "tsc && jest --runInBand --detectOpenHandles --forceExit Recipe_internet_project/src/tests/comments.test.ts",
+    "testrecipe": "tsc && jest --runInBand --detectOpenHandles --forceExit Recipe_internet_project/src/tests/recipes.test.ts",
+    "testauth": "tsc && jest --runInBand --detectOpenHandles --forceExit Recipe_internet_project/src/tests/auth.test.ts"
   },
   "author": "Menachi",
   "license": "ISC",
