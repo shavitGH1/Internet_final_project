@@ -1,0 +1,56 @@
+//import 'express-async-errors'; 
+import express, { Express } from "express";
+const app = express();
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.dev" });
+import recipeRoutes from "./routes/recipesRoutes"; // השם של המשתנה שונה מ-movieRoutes ל-recipeRoutes
+import commentRoutes from "./routes/commentRoutes";
+import authRoutes from "./routes/authRoutes";
+import { specs, swaggerUi } from "./swagger";
+
+const intApp = () => {
+  const promise = new Promise<Express>((resolve, reject) => {
+    app.use(express.urlencoded({ extended: false }));
+    app.use(express.json());
+
+    // Swagger Documentation
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, {
+      explorer: true,
+      customCss: ".swagger-ui .topbar { display: none }",
+      customSiteTitle: "Recipe & Comments API Documentation" // הכותרת שונתה
+    }));
+
+    // Swagger JSON endpoint
+    app.get("/api-docs.json", (req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(specs);
+    });
+
+    app.use("/recipes", recipeRoutes); // הנתיב שונה מ-/movie ל-/recipes
+    app.use("/comment", commentRoutes);
+    app.use("/auth", authRoutes);
+
+    const dbUri = process.env.MONGODB_URI;
+    if (!dbUri) {
+      console.error("MONGODB_URI is not defined in the environment variables.");
+      reject(new Error("MONGODB_URI is not defined"));
+    } else {
+      mongoose
+        .connect(dbUri, {})
+        .then(() => {
+          resolve(app);
+        });
+    }
+    const db = mongoose.connection;
+    db.on("error", (error) => {
+      console.error(error);
+    });
+    db.once("open", () => {
+      console.log("Connected to MongoDB");
+    });
+  });
+  return promise;
+};
+
+export default intApp;
