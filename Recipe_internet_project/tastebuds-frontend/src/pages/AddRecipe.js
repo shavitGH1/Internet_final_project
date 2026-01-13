@@ -92,13 +92,6 @@ const AddRecipe = () => {
     <div className="form-container">
       <div className="form-wrapper">
         <h1>Add New Recipe</h1>
-        {error && (
-          <div className="error-message">
-            {error.split('\n').map((line, index) => (
-              <div key={index}>{line}</div>
-            ))}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -165,6 +158,14 @@ const AddRecipe = () => {
               min="0"
             />
           </div>
+
+          {error && (
+            <div className="error-message">
+              {error.split('\n').map((line, index) => (
+                <div key={index}>{line}</div>
+              ))}
+            </div>
+          )}
 
           <div className="form-actions">
             <button type="submit" disabled={loading} className="submit-btn">
