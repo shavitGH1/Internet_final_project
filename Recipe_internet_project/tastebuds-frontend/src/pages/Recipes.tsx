@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { recipesAPI } from '../services/api';
+import { recipesAPI, Recipe } from '../services/api';
 import './Recipes.css';
 
-const Recipes = () => {
-  const [recipes, setRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+const Recipes: React.FC = () => {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     fetchRecipes();
@@ -18,7 +18,7 @@ const Recipes = () => {
       const response = await recipesAPI.getAllRecipes();
       setRecipes(response.data);
       setError('');
-    } catch (err) {
+    } catch (err: any) {
       setError('Failed to load recipes. Please try again later.');
       console.error(err);
     } finally {
@@ -26,12 +26,12 @@ const Recipes = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this recipe?')) {
       try {
         await recipesAPI.deleteRecipe(id);
         setRecipes(recipes.filter(recipe => recipe._id !== id));
-      } catch (err) {
+      } catch (err: any) {
         setError('Failed to delete recipe. Please try again.');
         console.error(err);
       }
@@ -65,14 +65,14 @@ const Recipes = () => {
           {recipes.map((recipe) => (
             <div key={recipe._id} className="recipe-card">
               <div className="recipe-content">
-                <h2>{recipe.name}</h2>
-                <p className="recipe-description">{recipe.description}</p>
+                <h2>{recipe.title}</h2>
+                {recipe.description && <p className="recipe-description">{recipe.description}</p>}
                 
                 <div className="recipe-info">
-                  <p><strong>Ingredients:</strong> {recipe.ingredients}</p>
-                  <p><strong>Instructions:</strong> {recipe.instructions}</p>
-                  {recipe.cookTime && (
-                    <p><strong>Cook Time:</strong> {recipe.cookTime} minutes</p>
+                  <p><strong>Ingredients:</strong> {recipe.ingredients.join(', ')}</p>
+                  <p><strong>Steps:</strong> {recipe.steps.join(', ')}</p>
+                  {recipe.cookingTime && (
+                    <p><strong>Cook Time:</strong> {recipe.cookingTime} minutes</p>
                   )}
                 </div>
               </div>
@@ -85,7 +85,7 @@ const Recipes = () => {
                   Edit
                 </Link>
                 <button
-                  onClick={() => handleDelete(recipe._id)}
+                  onClick={() => recipe._id && handleDelete(recipe._id)}
                   className="delete-btn"
                 >
                   Delete

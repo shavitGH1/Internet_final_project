@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { isAuthenticated, clearTokens } from '../utils/auth';
 import './Navigation.css';
 
-const Navigation = () => {
+const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
 

@@ -1,21 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recipesAPI } from '../services/api';
 import './RecipeForm.css';
 
-const AddRecipe = () => {
-  const [formData, setFormData] = useState({
-    name: '',
+interface FormData {
+  title: string;
+  description: string;
+  ingredients: string;
+  steps: string;
+  cookingTime: string;
+  imageCover: string;
+}
+
+const AddRecipe: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
     description: '',
     ingredients: '',
-    instructions: '',
-    cookTime: '',
+    steps: '',
+    cookingTime: '',
+    imageCover: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -23,20 +33,23 @@ const AddRecipe = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
       const dataToSend = {
-        ...formData,
-        cookTime: formData.cookTime ? parseInt(formData.cookTime) : undefined,
+        title: formData.title,
+        ingredients: formData.ingredients.split('\n').filter(item => item.trim()),
+        steps: formData.steps.split('\n').filter(item => item.trim()),
+        cookingTime: formData.cookingTime ? parseInt(formData.cookingTime) : undefined,
+        imageCover: formData.imageCover,
       };
       
       await recipesAPI.createRecipe(dataToSend);
       navigate('/recipes');
-    } catch (err) {
+    } catch (err: any) {
       // Extract meaningful error messages from the API response
       let errorMessage = 'Failed to add recipe. Please try again.';
       
@@ -72,9 +85,9 @@ const AddRecipe = () => {
         if (err.response.data.errors) {
           const errors = err.response.data.errors;
           if (Array.isArray(errors)) {
-            errorMessage = errors.map(e => `• ${e}`).join('\n');
+            errorMessage = errors.map((e: string) => `• ${e}`).join('\n');
           } else if (typeof errors === 'object') {
-            errorMessage = Object.values(errors).map(e => `• ${e}`).join('\n');
+            errorMessage = Object.values(errors).map((e: any) => `• ${e}`).join('\n');
           }
         }
       } else if (err.message) {
@@ -95,67 +108,81 @@ const AddRecipe = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name">Recipe Name *</label>
+            <label htmlFor="title">Recipe Title *</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="title"
+              name="title"
+              value={formData.title}
               onChange={handleChange}
               required
-              placeholder="Enter recipe name"
+              placeholder="Enter recipe title"
+              maxLength={40}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description *</label>
+            <label htmlFor="imageCover">Image URL *</label>
+            <input
+              type="url"
+              id="imageCover"
+              name="imageCover"
+              value={formData.imageCover}
+              onChange={handleChange}
+              required
+              placeholder="Enter image URL"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              required
               placeholder="Enter recipe description"
-              rows="3"
+              rows={3}
             ></textarea>
           </div>
 
           <div className="form-group">
-            <label htmlFor="ingredients">Ingredients *</label>
+            <label htmlFor="ingredients">Ingredients * (one per line)</label>
             <textarea
               id="ingredients"
               name="ingredients"
               value={formData.ingredients}
               onChange={handleChange}
               required
-              placeholder="Enter ingredients (one per line or comma-separated)"
-              rows="4"
+              placeholder="Enter ingredients (one per line)"
+              rows={4}
             ></textarea>
           </div>
 
           <div className="form-group">
-            <label htmlFor="instructions">Instructions *</label>
+            <label htmlFor="steps">Cooking Steps * (one per line)</label>
             <textarea
-              id="instructions"
-              name="instructions"
-              value={formData.instructions}
+              id="steps"
+              name="steps"
+              value={formData.steps}
               onChange={handleChange}
               required
-              placeholder="Enter cooking instructions"
-              rows="5"
+              placeholder="Enter cooking steps (one per line)"
+              rows={5}
             ></textarea>
           </div>
 
           <div className="form-group">
-            <label htmlFor="cookTime">Cook Time (minutes)</label>
+            <label htmlFor="cookingTime">Cooking Time (minutes) *</label>
             <input
               type="number"
-              id="cookTime"
-              name="cookTime"
-              value={formData.cookTime}
+              id="cookingTime"
+              name="cookingTime"
+              value={formData.cookingTime}
               onChange={handleChange}
+              required
               placeholder="Enter cooking time in minutes"
-              min="0"
+              min={1}
             />
           </div>
 
