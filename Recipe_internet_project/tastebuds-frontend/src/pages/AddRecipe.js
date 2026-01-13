@@ -37,8 +37,52 @@ const AddRecipe = () => {
       await recipesAPI.createRecipe(dataToSend);
       navigate('/recipes');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add recipe. Please try again.');
-      console.error(err);
+      // Extract meaningful error messages from the API response
+      let errorMessage = 'Failed to add recipe. Please try again.';
+      
+      if (err.response?.data) {
+        // Check for various error formats
+        if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error;
+          
+          // Parse validation errors like "Recipe validation failed: field1: error1, field2: error2"
+          if (errorMessage.includes('validation failed:')) {
+            const validationPart = errorMessage.split('validation failed:')[1];
+            if (validationPart) {
+              // Split by comma and format each error
+              const errors = validationPart.split(',').map(err => {
+                const parts = err.trim().split(':');
+                if (parts.length >= 2) {
+                  const field = parts[0].trim();
+                  const message = parts.slice(1).join(':').trim();
+                  return `• ${message}`;
+                }
+                return `• ${err.trim()}`;
+              });
+              errorMessage = errors.join('\n');
+            }
+          }
+        } else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        }
+        
+        // If there are validation errors, format them nicely
+        if (err.response.data.errors) {
+          const errors = err.response.data.errors;
+          if (Array.isArray(errors)) {
+            errorMessage = errors.map(e => `• ${e}`).join('\n');
+          } else if (typeof errors === 'object') {
+            errorMessage = Object.values(errors).map(e => `• ${e}`).join('\n');
+          }
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      console.error('Error details:', err);
     } finally {
       setLoading(false);
     }
@@ -48,7 +92,13 @@ const AddRecipe = () => {
     <div className="form-container">
       <div className="form-wrapper">
         <h1>Add New Recipe</h1>
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message">
+            {error.split('\n').map((line, index) => (
+              <div key={index}>{line}</div>
+            ))}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
