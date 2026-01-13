@@ -10,9 +10,13 @@
     "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
     "testcomment": "tsc && jest --runInBand --detectOpenHandles --forceExit Recipe_internet_project/src/tests/comments.test.ts",
     "testrecipe": "tsc && jest --runInBand --detectOpenHandles --forceExit Recipe_internet_project/src/tests/recipes.test.ts",
-    "testauth": "tsc && jest --runInBand --detectOpenHandles --forceExit Recipe_internet_project/src/tests/auth.test.ts"
+    "testauth": "tsc && jest --runInBand --detectOpenHandles --forceExit Recipe_internet_project/src/tests/auth.test.ts",
+    "frontend": "cd Recipe_internet_project/tastebuds-frontend && npm start",
+    "backend": "npm run dev",
+    "start:both": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "install:all": "npm install && cd Recipe_internet_project/tastebuds-frontend && npm install"
   },
-  "author": "Menachi",
+  "author": "Tastebuds Team - Gal & Shavit",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -35,6 +39,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
+    "concurrently": "^9.1.2",
     "eslint": "^9.39.1",
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",
