@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Recipes from './pages/Recipes';
 import AddRecipe from './pages/AddRecipe';
 import EditRecipe from './pages/EditRecipe';
+import RecipeDetail from './pages/RecipeDetail';
 import './App.css';
 
 function App() {
@@ -21,6 +22,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Recipes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recipes/:id"
+          element={
+            <ProtectedRoute>
+              <RecipeDetail />
             </ProtectedRoute>
           }
         />
