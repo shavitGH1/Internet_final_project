@@ -12,7 +12,7 @@ export interface Recipe {
   imageCover: string;
   difficulty?: 'easy' | 'medium' | 'difficult';
   description?: string;
-  user?: string;
+  user?: string | { _id: string; email: string };
   createdAt?: Date;
 }
 

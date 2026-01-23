@@ -20,3 +20,17 @@ export const clearTokens = (): void => {
 export const isAuthenticated = (): boolean => {
   return !!getToken();
 };
+
+// Decode JWT to get user ID
+export const getCurrentUserId = (): string | null => {
+  const token = getToken();
+  if (!token) return null;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.userId || null;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
