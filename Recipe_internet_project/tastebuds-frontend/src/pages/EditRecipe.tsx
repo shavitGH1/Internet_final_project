@@ -1,5 +1,5 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { recipesAPI } from '../services/api';
 import './RecipeForm.css';
 
@@ -12,7 +12,7 @@ interface FormData {
   imageCover: string;
 }
 
-const AddRecipe: React.FC = () => {
+const EditRecipe: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
@@ -23,7 +23,38 @@ const AddRecipe: React.FC = () => {
   });
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingRecipe, setLoadingRecipe] = useState<boolean>(true);
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
+  useEffect(() => {
+    if (id) {
+      fetchRecipe(id);
+    }
+  }, [id]);
+
+  const fetchRecipe = async (recipeId: string) => {
+    try {
+      setLoadingRecipe(true);
+      const response = await recipesAPI.getRecipeById(recipeId);
+      const recipe = response.data;
+      
+      setFormData({
+        title: recipe.title,
+        description: recipe.description || '',
+        ingredients: recipe.ingredients.join('\n'),
+        steps: recipe.steps.join('\n'),
+        cookingTime: recipe.cookingTime ? recipe.cookingTime.toString() : '',
+        imageCover: recipe.imageCover,
+      });
+      setError('');
+    } catch (err: any) {
+      setError('Failed to load recipe. Please try again.');
+      console.error(err);
+    } finally {
+      setLoadingRecipe(false);
+    }
+  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -39,20 +70,24 @@ const AddRecipe: React.FC = () => {
     setLoading(true);
 
     try {
+      if (!id) {
+        throw new Error('Recipe ID is missing');
+      }
+
       const dataToSend = {
         title: formData.title,
-        description: formData.description,
         ingredients: formData.ingredients.split('\n').filter(item => item.trim()),
         steps: formData.steps.split('\n').filter(item => item.trim()),
         cookingTime: formData.cookingTime ? parseInt(formData.cookingTime) : undefined,
         imageCover: formData.imageCover,
+        description: formData.description,
       };
       
-      await recipesAPI.createRecipe(dataToSend);
+      await recipesAPI.updateRecipe(id, dataToSend);
       navigate('/recipes');
     } catch (err: any) {
       // Extract meaningful error messages from the API response
-      let errorMessage = 'Failed to add recipe. Please try again.';
+      let errorMessage = 'Failed to update recipe. Please try again.';
       
       if (err.response?.data) {
         // Check for various error formats
@@ -102,10 +137,14 @@ const AddRecipe: React.FC = () => {
     }
   };
 
+  if (loadingRecipe) {
+    return <div className="loading">Loading recipe...</div>;
+  }
+
   return (
     <div className="form-container">
       <div className="form-wrapper">
-        <h1>Add New Recipe</h1>
+        <h1>Edit Recipe</h1>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -197,7 +236,7 @@ const AddRecipe: React.FC = () => {
 
           <div className="form-actions">
             <button type="submit" disabled={loading} className="submit-btn">
-              {loading ? 'Adding Recipe...' : 'Add Recipe'}
+              {loading ? 'Updating Recipe...' : 'Update Recipe'}
             </button>
             <button
               type="button"
@@ -213,4 +252,4 @@ const AddRecipe: React.FC = () => {
   );
 };
 
-export default AddRecipe;
+export default EditRecipe;
