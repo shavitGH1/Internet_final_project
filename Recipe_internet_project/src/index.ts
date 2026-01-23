@@ -21,6 +21,16 @@ const intApp = () => {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
 
+    // Request logging middleware
+    app.use((req, res, next) => {
+      const startTime = Date.now();
+      res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        console.log(`${new Date().toISOString()} [${req.method}] ${req.originalUrl} - Status: ${res.statusCode} - ${duration}ms`);
+      });
+      next();
+    });
+
     // Swagger Documentation
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, {
       explorer: true,
