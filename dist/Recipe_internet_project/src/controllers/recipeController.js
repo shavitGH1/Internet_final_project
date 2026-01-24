@@ -85,16 +85,11 @@ class RecipeController extends baseController_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            console.log('Delete request - User ID from token:', userId, 'Type:', typeof userId);
             const recipe = yield recipeModel_1.default.findById(req.params.id);
             if (!recipe) {
                 res.status(404).json({ error: "Recipe not found" });
                 return;
             }
-            console.log('Recipe user ID:', recipe.user, 'Type:', typeof recipe.user);
-            console.log('Recipe user ID toString:', recipe.user.toString());
-            console.log('User ID toString:', userId === null || userId === void 0 ? void 0 : userId.toString());
-            console.log('Are they equal?', recipe.user.toString() === (userId === null || userId === void 0 ? void 0 : userId.toString()));
             if (!userId || recipe.user.toString() !== userId.toString()) {
                 res.status(403).json({ error: "Forbidden - You can only delete your own recipes" });
                 return;
