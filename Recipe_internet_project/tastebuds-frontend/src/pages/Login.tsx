@@ -19,7 +19,7 @@ const Login: React.FC = () => {
     try {
       const response = await authAPI.login(email, password);
       const { token, refreshToken } = response.data;
-      setTokens(token, refreshToken);
+      setTokens(token, refreshToken, email);
       navigate('/recipes');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');

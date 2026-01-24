@@ -1,7 +1,10 @@
 // Auth utilities
-export const setTokens = (token: string, refreshToken: string): void => {
+export const setTokens = (token: string, refreshToken: string, userEmail?: string): void => {
   localStorage.setItem('token', token);
   localStorage.setItem('refreshToken', refreshToken);
+  if (userEmail) {
+    localStorage.setItem('userEmail', userEmail);
+  }
 };
 
 export const getToken = (): string | null => {
@@ -12,9 +15,14 @@ export const getRefreshToken = (): string | null => {
   return localStorage.getItem('refreshToken');
 };
 
+export const getUserEmail = (): string | null => {
+  return localStorage.getItem('userEmail');
+};
+
 export const clearTokens = (): void => {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userEmail');
 };
 
 export const isAuthenticated = (): boolean => {

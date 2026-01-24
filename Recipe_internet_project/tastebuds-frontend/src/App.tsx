@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Recipes from './pages/Recipes';
+import MyRecipes from './pages/MyRecipes';
 import AddRecipe from './pages/AddRecipe';
 import EditRecipe from './pages/EditRecipe';
 import RecipeDetail from './pages/RecipeDetail';
@@ -22,6 +23,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Recipes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-recipes"
+          element={
+            <ProtectedRoute>
+              <MyRecipes />
             </ProtectedRoute>
           }
         />

@@ -4,21 +4,25 @@ import { recipesAPI, Recipe } from '../services/api';
 import { getCurrentUserId } from '../utils/auth';
 import './Recipes.css';
 
-const Recipes: React.FC = () => {
+const MyRecipes: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const currentUserId = getCurrentUserId();
 
   useEffect(() => {
-    fetchRecipes();
+    fetchMyRecipes();
   }, []);
 
-  const fetchRecipes = async () => {
+  const fetchMyRecipes = async () => {
     try {
       setLoading(true);
       const response = await recipesAPI.getAllRecipes();
-      setRecipes(response.data);
+      // Filter to show only current user's recipes
+      const myRecipes = response.data.filter(recipe => 
+        recipe.user && typeof recipe.user === 'object' && recipe.user._id === currentUserId
+      );
+      setRecipes(myRecipes);
       setError('');
     } catch (err: any) {
       setError('Failed to load recipes. Please try again later.');
@@ -38,7 +42,7 @@ const Recipes: React.FC = () => {
         let errorMessage = 'Failed to delete recipe.';
         
         if (err.response?.status === 403) {
-          errorMessage = 'You do not have permission to delete this recipe. You can only delete recipes you created.';
+          errorMessage = 'You do not have permission to delete this recipe.';
         } else if (err.response?.status === 404) {
           errorMessage = 'Recipe not found.';
         } else if (err.response?.status === 401) {
@@ -59,13 +63,13 @@ const Recipes: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading recipes...</div>;
+    return <div className="loading">Loading your recipes...</div>;
   }
 
   return (
     <div className="recipes-container">
       <div className="recipes-header">
-        <h1>All Recipes</h1>
+        <h1>My Recipes</h1>
         <Link to="/add-recipe" className="add-recipe-btn">
           + Add New Recipe
         </Link>
@@ -75,7 +79,7 @@ const Recipes: React.FC = () => {
 
       {recipes.length === 0 ? (
         <div className="no-recipes">
-          <p>No recipes found. Start by adding your first recipe!</p>
+          <p>You haven't created any recipes yet. Start by adding your first recipe!</p>
           <Link to="/add-recipe" className="add-recipe-btn">
             Add Recipe
           </Link>
@@ -109,19 +113,15 @@ const Recipes: React.FC = () => {
                 <Link to={`/recipes/${recipe._id}`} className="view-btn">
                   View Details
                 </Link>
-                {recipe.user && typeof recipe.user === 'object' && recipe.user._id === currentUserId && (
-                  <>
-                    <Link to={`/edit-recipe/${recipe._id}`} className="edit-btn">
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => recipe._id && handleDelete(recipe._id)}
-                      className="delete-btn"
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
+                <Link to={`/edit-recipe/${recipe._id}`} className="edit-btn">
+                  Edit
+                </Link>
+                <button
+                  onClick={() => recipe._id && handleDelete(recipe._id)}
+                  className="delete-btn"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}
@@ -131,4 +131,4 @@ const Recipes: React.FC = () => {
   );
 };
 
-export default Recipes;
+export default MyRecipes;

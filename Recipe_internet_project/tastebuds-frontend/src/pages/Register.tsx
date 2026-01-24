@@ -26,7 +26,7 @@ const Register: React.FC = () => {
     try {
       const response = await authAPI.register(email, password);
       const { token, refreshToken } = response.data;
-      setTokens(token, refreshToken);
+      setTokens(token, refreshToken, email);
       navigate('/recipes');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');

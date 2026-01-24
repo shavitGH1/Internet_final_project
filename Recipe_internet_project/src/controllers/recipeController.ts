@@ -57,16 +57,11 @@ class RecipeController extends baseController {
 
     async del(req: AuthRequest, res: Response) {
         const userId = (req as any).user?._id;
-        console.log('Delete request - User ID from token:', userId, 'Type:', typeof userId);
         const recipe = await Recipe.findById(req.params.id);
         if (!recipe) {
             res.status(404).json({ error: "Recipe not found" });
             return;
         }
-        console.log('Recipe user ID:', recipe.user, 'Type:', typeof recipe.user);
-        console.log('Recipe user ID toString:', recipe.user.toString());
-        console.log('User ID toString:', userId?.toString());
-        console.log('Are they equal?', recipe.user.toString() === userId?.toString());
         
         if (!userId || recipe.user.toString() !== userId.toString()) {
             res.status(403).json({ error: "Forbidden - You can only delete your own recipes" });
