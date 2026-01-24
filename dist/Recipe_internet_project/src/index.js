@@ -9,14 +9,29 @@ const app = (0, express_1.default)();
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({ path: ".env.dev" });
+const cors_1 = __importDefault(require("cors"));
 const recipesRoutes_1 = __importDefault(require("./routes/recipesRoutes")); // recipes router
 const commentRoutes_1 = __importDefault(require("./routes/commentRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const swagger_1 = require("./swagger");
 const intApp = () => {
     const promise = new Promise((resolve, reject) => {
+        // Enable CORS for frontend communication
+        app.use((0, cors_1.default)({
+            origin: "http://localhost:5000", // Allow requests from React frontend
+            credentials: true
+        }));
         app.use(express_1.default.urlencoded({ extended: false }));
         app.use(express_1.default.json());
+        // Request logging middleware
+        app.use((req, res, next) => {
+            const startTime = Date.now();
+            res.on('finish', () => {
+                const duration = Date.now() - startTime;
+                console.log(`${new Date().toISOString()} [${req.method}] ${req.originalUrl} - Status: ${res.statusCode} - ${duration}ms`);
+            });
+            next();
+        });
         // Swagger Documentation
         app.use("/api-docs", swagger_1.swaggerUi.serve, swagger_1.swaggerUi.setup(swagger_1.specs, {
             explorer: true,

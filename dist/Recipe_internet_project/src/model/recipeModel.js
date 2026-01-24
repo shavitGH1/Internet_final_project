@@ -12,6 +12,10 @@ const recipeSchema = new mongoose_1.default.Schema({
         trim: true,
         maxlength: [40, 'A recipe title must have less or equal than 40 characters']
     },
+    description: {
+        type: String,
+        trim: true
+    },
     ingredients: {
         type: [String],
         required: [true, 'A recipe must have ingredients']
@@ -28,33 +32,6 @@ const recipeSchema = new mongoose_1.default.Schema({
         type: String,
         required: [true, 'A recipe must have a cover image']
     },
-    difficulty: {
-        type: String,
-        enum: {
-            values: ['easy', 'medium', 'difficult'],
-            message: 'Difficulty is either: easy, medium, difficult'
-        }
-    },
-    ratingsAverage: {
-        type: Number,
-        default: 4.5,
-        min: [1, 'Rating must be above 1.0'],
-        max: [5, 'Rating must be below 5.0'],
-        set: (val) => Math.round(val * 10) / 10
-    },
-    ratingsQuantity: {
-        type: Number,
-        default: 0
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now(),
-        select: false
-    },
-    calories: Number,
-    protein: Number,
-    carbs: Number,
-    fats: Number,
     user: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'User',

@@ -18,7 +18,6 @@ router
     .route('/:id')
     .get(recipeController_1.default.getById.bind(recipeController_1.default)) // שונה מ-getRecipe
     .patch(recipeController_1.default.put.bind(recipeController_1.default)) // שונה מ-updateRecipe
-    .delete(authController_1.default.restrictTo('user', 'admin'), recipeController_1.default.del.bind(recipeController_1.default) // שונה מ-deleteRecipe
-);
+    .delete(recipeController_1.default.del.bind(recipeController_1.default)); // שונה מ-deleteRecipe 
 exports.default = router;
 //# sourceMappingURL=recipesRoutes.js.map
