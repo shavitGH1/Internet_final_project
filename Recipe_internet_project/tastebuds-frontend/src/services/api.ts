@@ -47,6 +47,23 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle 401 responses (unauthorized - expired token, invalid token, etc.)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear tokens
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      
+      // Redirect to login
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth API
 export const authAPI = {
   register: (email: string, password: string) =>

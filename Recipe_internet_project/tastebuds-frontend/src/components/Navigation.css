@@ -1,10 +1,12 @@
 .navbar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff7043 0%, #ff4081 50%, #ff6b9d 100%);
   padding: 15px 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
   position: sticky;
   top: 0;
   z-index: 1000;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
 }
 
 .nav-container {
@@ -51,6 +53,12 @@
 .nav-link:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.35);
+  border-bottom: 3px solid white;
+  font-weight: 700;
 }
 
 .nav-greeting {

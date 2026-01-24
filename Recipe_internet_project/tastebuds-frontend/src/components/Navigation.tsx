@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { isAuthenticated, clearTokens, getUserEmail } from '../utils/auth';
 import './Navigation.css';
 
@@ -16,22 +16,22 @@ const Navigation: React.FC = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-logo">
+        <NavLink to="/" className="nav-logo">
           🍽️ TasteBuds
-        </Link>
+        </NavLink>
 
         <div className="nav-menu">
           {authenticated ? (
             <>
-              <Link to="/recipes" className="nav-link">
+              <NavLink to="/recipes" className="nav-link">
                 All Recipes
-              </Link>
-              <Link to="/my-recipes" className="nav-link">
+              </NavLink>
+              <NavLink to="/my-recipes" className="nav-link">
                 My Recipes
-              </Link>
-              <Link to="/add-recipe" className="nav-link">
+              </NavLink>
+              <NavLink to="/add-recipe" className="nav-link">
                 Add Recipe
-              </Link>
+              </NavLink>
               <span className="nav-greeting">
                 Hello, {userEmail}!
               </span>
@@ -41,12 +41,12 @@ const Navigation: React.FC = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="nav-link">
+              <NavLink to="/login" className="nav-link">
                 Login
-              </Link>
-              <Link to="/register" className="nav-link">
+              </NavLink>
+              <NavLink to="/register" className="nav-link">
                 Register
-              </Link>
+              </NavLink>
             </>
           )}
         </div>
