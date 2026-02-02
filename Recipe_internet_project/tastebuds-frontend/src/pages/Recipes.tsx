@@ -28,35 +28,7 @@ const Recipes: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this recipe?')) {
-      try {
-        await recipesAPI.deleteRecipe(id);
-        setRecipes(recipes.filter(recipe => recipe._id !== id));
-        setError('');
-      } catch (err: any) {
-        let errorMessage = 'Failed to delete recipe.';
-        
-        if (err.response?.status === 403) {
-          errorMessage = 'You do not have permission to delete this recipe. You can only delete recipes you created.';
-        } else if (err.response?.status === 404) {
-          errorMessage = 'Recipe not found.';
-        } else if (err.response?.status === 401) {
-          errorMessage = 'You must be logged in to delete recipes.';
-        } else if (err.response?.data?.error) {
-          errorMessage = err.response.data.error;
-        } else if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        setError(errorMessage);
-        alert(errorMessage);
-        console.error('Delete error:', err);
-      }
-    }
-  };
+  // deletion moved to RecipeDetail view
 
   if (loading) {
     return <div className="loading">Loading recipes...</div>;
@@ -84,45 +56,25 @@ const Recipes: React.FC = () => {
         <div className="recipes-grid">
           {recipes.map((recipe) => (
             <div key={recipe._id} className="recipe-card">
-              {recipe.imageCover && (
-                <div className="recipe-thumbnail">
-                  <img src={recipe.imageCover} alt={recipe.title} />
-                </div>
-              )}
-              <div className="recipe-content">
-                <h2>{recipe.title}</h2>
-                {recipe.user && typeof recipe.user === 'object' && (
-                  <p className="recipe-author">By: {recipe.user.email}</p>
+              <Link to={`/recipes/${recipe._id}`} className="recipe-card-link">
+                {recipe.imageCover ? (
+                  <div className="recipe-thumbnail">
+                    <img src={recipe.imageCover} alt={recipe.title} />
+                  </div>
+                ) : (
+                  <div className="recipe-thumbnail placeholder">
+                    <span>No image</span>
+                  </div>
                 )}
-                {recipe.description && <p className="recipe-description">{recipe.description}</p>}
-                
-                <div className="recipe-info">
-                  <p><strong>Ingredients:</strong> {recipe.ingredients.join(', ')}</p>
-                  <p><strong>Steps:</strong> {recipe.steps.join(', ')}</p>
-                  {recipe.cookingTime && (
-                    <p><strong>Cook Time:</strong> {recipe.cookingTime} minutes</p>
-                  )}
+
+                <div className="recipe-content">
+                  <h2 className="recipe-title">{recipe.title}</h2>
+                  {(() => {
+                    const author = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).email : (recipe.user || 'Unknown');
+                    return <p className="recipe-author">{author}</p>;
+                  })()}
                 </div>
-              </div>
-              
-              <div className="recipe-actions">
-                <Link to={`/recipes/${recipe._id}`} className="view-btn">
-                  View Details
-                </Link>
-                {recipe.user && typeof recipe.user === 'object' && recipe.user._id === currentUserId && (
-                  <>
-                    <Link to={`/edit-recipe/${recipe._id}`} className="edit-btn">
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => recipe._id && handleDelete(recipe._id)}
-                      className="delete-btn"
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
+              </Link>
             </div>
           ))}
         </div>

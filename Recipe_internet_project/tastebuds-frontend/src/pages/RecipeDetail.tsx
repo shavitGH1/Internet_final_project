@@ -69,6 +69,13 @@ const RecipeDetail: React.FC = () => {
           </div>
         )}
 
+        <div className="recipe-author-row">
+          {(() => {
+            const author = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).email : (recipe.user || 'Unknown');
+            return <p className="recipe-author">By: {author}</p>;
+          })()}
+        </div>
+
         {recipe.description && (
           <div className="recipe-section">
             <h2>Description</h2>
@@ -104,14 +111,33 @@ const RecipeDetail: React.FC = () => {
           {(() => {
             const ownerId = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any)._id : recipe.user;
             const canEdit = !!currentUserId && !!ownerId && String(ownerId) === String(currentUserId);
-            return canEdit ? (
-              <button
-                onClick={() => navigate(`/edit-recipe/${recipe._id}`)}
-                className="edit-recipe-btn"
-              >
-                Edit Recipe
-              </button>
-            ) : null;
+                      return canEdit ? (
+                        <>
+                          <button
+                            onClick={() => navigate(`/edit-recipe/${recipe._id}`)}
+                            className="edit-recipe-btn"
+                          >
+                            Edit Recipe
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!recipe._id) return;
+                              if (!window.confirm('Are you sure you want to delete this recipe?')) return;
+                              try {
+                                await recipesAPI.deleteRecipe(recipe._id);
+                                navigate('/recipes');
+                              } catch (err: any) {
+                                const msg = err.response?.data?.error || err.response?.data?.message || 'Failed to delete recipe.';
+                                alert(msg);
+                                console.error(err);
+                              }
+                            }}
+                            className="delete-recipe-btn"
+                          >
+                            Delete Recipe
+                          </button>
+                        </>
+                      ) : null;
           })()}
         </div>
       </div>

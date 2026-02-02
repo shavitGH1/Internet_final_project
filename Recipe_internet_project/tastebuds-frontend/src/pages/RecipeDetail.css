@@ -199,6 +199,7 @@
 .recipe-actions {
   display: flex;
   justify-content: center;
+  gap: 12px;
   padding-top: 2rem;
   margin-top: 2rem;
   border-top: 2px solid #e9ecef;
@@ -221,6 +222,24 @@
   background: linear-gradient(135deg, #ff5577 0%, #ff8844 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(255, 106, 136, 0.5);
+}
+
+.delete-recipe-btn {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  color: white;
+  border: none;
+  padding: 0.9rem 1.6rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2);
+}
+
+.delete-recipe-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
 }
 
 .error-container {
