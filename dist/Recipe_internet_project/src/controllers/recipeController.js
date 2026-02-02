@@ -65,17 +65,23 @@ class RecipeController extends baseController_1.default {
         });
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            const authReq = req;
+            const userId = (_a = authReq.user) === null || _a === void 0 ? void 0 : _a._id;
             const recipe = yield recipeModel_1.default.findById(req.params.id);
             if (!recipe) {
                 res.status(404).json({ error: "Recipe not found" });
                 return;
             }
-            if (recipe.user.toString() !== userId.toString()) {
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+            if (!recipe.user || String(recipe.user) !== String(userId)) {
                 res.status(403).json({ error: "Forbidden" });
                 return;
             }
-            return _super.put.call(this, req, res);
+            yield _super.put.call(this, req, res);
+            return;
         });
     }
     del(req, res) {
@@ -84,17 +90,23 @@ class RecipeController extends baseController_1.default {
         });
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            const authReq = req;
+            const userId = (_a = authReq.user) === null || _a === void 0 ? void 0 : _a._id;
             const recipe = yield recipeModel_1.default.findById(req.params.id);
             if (!recipe) {
                 res.status(404).json({ error: "Recipe not found" });
                 return;
             }
-            if (!userId || recipe.user.toString() !== userId.toString()) {
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+            if (!recipe.user || String(recipe.user) !== String(userId)) {
                 res.status(403).json({ error: "Forbidden - You can only delete your own recipes" });
                 return;
             }
-            return _super.del.call(this, req, res);
+            yield _super.del.call(this, req, res);
+            return;
         });
     }
 }

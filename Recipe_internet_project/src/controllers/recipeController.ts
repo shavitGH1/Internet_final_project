@@ -41,33 +41,44 @@ class RecipeController extends baseController {
         return super.post(req, res);
     }
 
-    async put(req: AuthRequest, res: Response) {
-        const userId = (req as any).user?._id;
+    async put(req: Request, res: Response) {
+        const authReq = req as AuthRequest;
+        const userId = (authReq as any).user?._id;
         const recipe = await Recipe.findById(req.params.id);
         if (!recipe) {
             res.status(404).json({ error: "Recipe not found" });
             return;
         }
-        if (recipe.user.toString() !== userId.toString()) {
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        if (!recipe.user || String(recipe.user) !== String(userId)) {
             res.status(403).json({ error: "Forbidden" });
             return;
         }
-        return super.put(req, res);
+        await super.put(req, res);
+        return;
     }
 
-    async del(req: AuthRequest, res: Response) {
-        const userId = (req as any).user?._id;
+    async del(req: Request, res: Response) {
+        const authReq = req as AuthRequest;
+        const userId = (authReq as any).user?._id;
         const recipe = await Recipe.findById(req.params.id);
         if (!recipe) {
             res.status(404).json({ error: "Recipe not found" });
             return;
         }
-        
-        if (!userId || recipe.user.toString() !== userId.toString()) {
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        if (!recipe.user || String(recipe.user) !== String(userId)) {
             res.status(403).json({ error: "Forbidden - You can only delete your own recipes" });
             return;
         }
-        return super.del(req, res);
+        await super.del(req, res);
+        return;
     }
 }
 

@@ -13,9 +13,13 @@ import { specs, swaggerUi } from "./swagger";
 const intApp = () => {
   const promise = new Promise<Express>((resolve, reject) => {
     // Enable CORS for frontend communication
+    // Use FRONTEND_URL env var when set, otherwise default to localhost:3000
+    const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
     app.use(cors({
-      origin: "http://localhost:5000", // Allow requests from React frontend
-      credentials: true
+      origin: frontendOrigin,
+      credentials: true,
+      methods: ['GET','POST','PATCH','PUT','DELETE','OPTIONS'],
+      allowedHeaders: ['Content-Type','Authorization']
     }));
     
     app.use(express.urlencoded({ extended: false }));

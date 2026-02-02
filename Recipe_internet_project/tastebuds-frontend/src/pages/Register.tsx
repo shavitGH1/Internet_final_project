@@ -29,7 +29,7 @@ const Register: React.FC = () => {
       setTokens(token, refreshToken, email);
       navigate('/recipes');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

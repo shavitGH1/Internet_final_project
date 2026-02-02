@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { recipesAPI, Recipe } from '../services/api';
+import { getCurrentUserId } from '../utils/auth';
 import './RecipeDetail.css';
 
 const RecipeDetail: React.FC = () => {
@@ -9,6 +10,7 @@ const RecipeDetail: React.FC = () => {
   const [error, setError] = useState<string>('');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const currentUserId = getCurrentUserId();
 
   useEffect(() => {
     if (id) {
@@ -99,12 +101,18 @@ const RecipeDetail: React.FC = () => {
         </div>
 
         <div className="recipe-actions">
-          <button
-            onClick={() => navigate(`/edit-recipe/${recipe._id}`)}
-            className="edit-recipe-btn"
-          >
-            Edit Recipe
-          </button>
+          {(() => {
+            const ownerId = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any)._id : recipe.user;
+            const canEdit = !!currentUserId && !!ownerId && String(ownerId) === String(currentUserId);
+            return canEdit ? (
+              <button
+                onClick={() => navigate(`/edit-recipe/${recipe._id}`)}
+                className="edit-recipe-btn"
+              >
+                Edit Recipe
+              </button>
+            ) : null;
+          })()}
         </div>
       </div>
     </div>
