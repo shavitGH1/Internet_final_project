@@ -13,13 +13,14 @@ export interface Recipe {
   difficulty?: 'easy' | 'medium' | 'difficult';
   description?: string;
   user?: string | { _id: string; email: string };
+  favorites?: string[] | { _id: string }[];
   createdAt?: Date;
 }
 
 export interface Comment {
   _id?: string;
-  text: string;
-  user?: string;
+  comment: string;
+  user?: string | { _id?: string; email?: string };
   recipe?: string;
   createdAt?: Date;
 }
@@ -82,6 +83,7 @@ export const recipesAPI = {
   updateRecipe: (id: string, recipeData: Partial<Recipe>) => 
     apiClient.patch<Recipe>(`/recipes/${id}`, recipeData),
   deleteRecipe: (id: string) => apiClient.delete(`/recipes/${id}`),
+  toggleFavorite: (id: string) => apiClient.post(`/recipes/${id}/favorite`),
 };
 
 // Comments API

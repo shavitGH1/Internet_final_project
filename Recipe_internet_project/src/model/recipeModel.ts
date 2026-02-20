@@ -8,6 +8,7 @@ export interface IRecipe extends Document {
     cookingTime: number;
     imageCover: string;
     createdAt: Date;
+    favorites: mongoose.Schema.Types.ObjectId[];
     user: mongoose.Schema.Types.ObjectId;
 }
 
@@ -38,6 +39,11 @@ const recipeSchema: Schema = new mongoose.Schema({
     imageCover: {
         type: String,
         required: [true, 'A recipe must have a cover image']
+    },
+    favorites: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+        default: []
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,

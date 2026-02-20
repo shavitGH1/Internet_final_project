@@ -17,9 +17,13 @@ const swagger_1 = require("./swagger");
 const intApp = () => {
     const promise = new Promise((resolve, reject) => {
         // Enable CORS for frontend communication
+        // Use FRONTEND_URL env var when set, otherwise default to localhost:3000
+        const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
         app.use((0, cors_1.default)({
-            origin: "http://localhost:5000", // Allow requests from React frontend
-            credentials: true
+            origin: frontendOrigin,
+            credentials: true,
+            methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization']
         }));
         app.use(express_1.default.urlencoded({ extended: false }));
         app.use(express_1.default.json());

@@ -19,5 +19,7 @@ router
     .get(recipeController_1.default.getById.bind(recipeController_1.default)) // שונה מ-getRecipe
     .patch(recipeController_1.default.put.bind(recipeController_1.default)) // שונה מ-updateRecipe
     .delete(recipeController_1.default.del.bind(recipeController_1.default)); // שונה מ-deleteRecipe 
+// Toggle favorite
+router.post('/:id/favorite', authController_1.default.protect, recipeController_1.default.toggleFavorite.bind(recipeController_1.default));
 exports.default = router;
 //# sourceMappingURL=recipesRoutes.js.map

@@ -19,6 +19,33 @@ class RecipeController extends baseController_1.default {
     constructor() {
         super(recipeModel_1.default);
     }
+    toggleFavorite(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            if (!userId)
+                return res.status(401).json({ error: 'Unauthorized' });
+            try {
+                const recipe = yield recipeModel_1.default.findById(req.params.id);
+                if (!recipe)
+                    return res.status(404).json({ error: 'Recipe not found' });
+                const idx = recipe.favorites ? recipe.favorites.findIndex((f) => String(f) === String(userId)) : -1;
+                if (idx === -1) {
+                    recipe.favorites = recipe.favorites || [];
+                    recipe.favorites.push(userId);
+                }
+                else {
+                    recipe.favorites = recipe.favorites.filter((f) => String(f) !== String(userId));
+                }
+                yield recipe.save();
+                return res.status(200).json({ favorites: recipe.favorites });
+            }
+            catch (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Failed to toggle favorite' });
+            }
+        });
+    }
     get(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const filter = req.query;

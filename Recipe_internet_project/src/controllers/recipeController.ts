@@ -10,6 +10,27 @@ class RecipeController extends baseController {
         super(Recipe);
     }
 
+    async toggleFavorite(req: AuthRequest, res: Response) {
+        const userId = (req as any).user?._id;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            const recipe = await Recipe.findById(req.params.id);
+            if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
+            const idx = recipe.favorites ? recipe.favorites.findIndex((f: any) => String(f) === String(userId)) : -1;
+            if (idx === -1) {
+                recipe.favorites = recipe.favorites || [];
+                recipe.favorites.push(userId);
+            } else {
+                recipe.favorites = recipe.favorites.filter((f: any) => String(f) !== String(userId));
+            }
+            await recipe.save();
+            return res.status(200).json({ favorites: recipe.favorites });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to toggle favorite' });
+        }
+    }
+
     async get(req: Request, res: Response) {
         const filter = req.query;
         try {
