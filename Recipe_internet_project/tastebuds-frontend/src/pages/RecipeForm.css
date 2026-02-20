@@ -6,7 +6,6 @@
   overflow: hidden;
 }
 
-/* Beautiful gradient background - same as login page */
 .form-container::before {
   content: '';
   position: fixed;
@@ -18,7 +17,6 @@
   z-index: -2;
 }
 
-/* Decorative pattern overlay */
 .form-container::after {
   content: '';
   position: fixed;
@@ -187,10 +185,62 @@
   }
 }
 
-/* Centering the submit button for both URL and Manual forms */
+
 form .submit-btn {
   display: block;
-  margin: 0 auto; /* Center the button horizontally */
-  text-align: center; /* Ensure text alignment within the button */
-  width: fit-content; /* Adjust width to fit the content */
+  margin: 0 auto;
+  text-align: center;
+  width: fit-content;
+}
+
+.dynamic-input-wrapper {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.dynamic-input-wrapper .form-control {
+  padding-right: 40px !important;
+}
+
+.remove-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.remove-btn:hover {
+  opacity: 1;
+  color: #dc3545;
+}
+
+.add-btn {
+  background-color: transparent;
+  color: #4a4a4a;
+  border: 1px dashed #ccc;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 5px;
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+}
+
+.add-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #aaa;
+  color: #000;
 }

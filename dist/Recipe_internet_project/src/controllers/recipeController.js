@@ -136,6 +136,25 @@ class RecipeController extends baseController_1.default {
             return;
         });
     }
+    addRecipeFromGemini(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            if (!userId)
+                return res.status(401).json({ error: 'Unauthorized' });
+            try {
+                const transformedRecipe = req.body; // Assume the transformed recipe is sent in the request body
+                transformedRecipe.user = userId; // Attach the user ID to the recipe
+                const newRecipe = new recipeModel_1.default(transformedRecipe);
+                yield newRecipe.save();
+                res.status(201).json(newRecipe);
+            }
+            catch (error) {
+                console.error('Error saving recipe:', error);
+                res.status(500).json({ error: 'Failed to save recipe to the database.' });
+            }
+        });
+    }
 }
 exports.default = new RecipeController();
 //# sourceMappingURL=recipeController.js.map

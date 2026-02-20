@@ -101,6 +101,24 @@ class RecipeController extends baseController {
         await super.del(req, res);
         return;
     }
+
+    async addRecipeFromGemini(req: AuthRequest, res: Response) {
+        const userId = (req as any).user?._id;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const transformedRecipe = req.body; // Assume the transformed recipe is sent in the request body
+            transformedRecipe.user = userId; // Attach the user ID to the recipe
+
+            const newRecipe = new Recipe(transformedRecipe);
+            await newRecipe.save();
+
+            res.status(201).json(newRecipe);
+        } catch (error) {
+            console.error('Error saving recipe:', error);
+            res.status(500).json({ error: 'Failed to save recipe to the database.' });
+        }
+    }
 }
 
 export default new RecipeController();
