@@ -201,7 +201,7 @@ const AddRecipe: React.FC = () => {
               </div>
             )}
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary" disabled={loading}>
+              <button id="submitmanual"type="submit" className="submit-btn" disabled={loading}>
                 {loading ? 'Adding...' : 'Add Recipe'}
               </button>
             </div>
@@ -221,7 +221,7 @@ const AddRecipe: React.FC = () => {
                 className="form-control"
               />
             </div>
-            <button type="submit" disabled={loading} className="btn btn-success">
+            <button id="submiturl" type="submit" disabled={loading} className="submit-btn">
               {loading ? 'Adding...' : 'Add Recipe via URL'}
             </button>
           </form>

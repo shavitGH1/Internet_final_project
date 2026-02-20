@@ -107,6 +107,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+
 }
 
 .submit-btn {
@@ -182,5 +183,14 @@
   .cancel-btn {
     flex: unset;
     width: 100%;
+    
   }
+}
+
+/* Centering the submit button for both URL and Manual forms */
+form .submit-btn {
+  display: block;
+  margin: 0 auto; /* Center the button horizontally */
+  text-align: center; /* Ensure text alignment within the button */
+  width: fit-content; /* Adjust width to fit the content */
 }
