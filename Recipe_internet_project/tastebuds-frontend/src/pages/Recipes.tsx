@@ -28,8 +28,6 @@ const Recipes: React.FC = () => {
     }
   };
 
-  // deletion moved to RecipeDetail view
-
   if (loading) {
     return <div className="loading">Loading recipes...</div>;
   }
@@ -38,9 +36,6 @@ const Recipes: React.FC = () => {
     <div className="recipes-container">
       <div className="recipes-header">
         <h1>All Recipes</h1>
-        <Link to="/add-recipe" className="add-recipe-btn">
-          + Add New Recipe
-        </Link>
       </div>
 
       {error && <div className="error-message">{error}</div>}

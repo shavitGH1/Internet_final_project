@@ -84,6 +84,7 @@ export const recipesAPI = {
     apiClient.patch<Recipe>(`/recipes/${id}`, recipeData),
   deleteRecipe: (id: string) => apiClient.delete(`/recipes/${id}`),
   toggleFavorite: (id: string) => apiClient.post(`/recipes/${id}/favorite`),
+  addRecipeFromUrl: (data: { url: string }) => apiClient.post<Recipe>('/recipes/url', data),
 };
 
 // Comments API

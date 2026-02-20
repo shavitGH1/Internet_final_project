@@ -27,6 +27,10 @@
   align-items: center;
   gap: 10px;
   transition: transform 0.2s;
+  margin-left: 0; /* Removing any extra margin */
+  padding-left: 0; /* Remove any padding */
+  position: absolute; /* Position the logo absolutely */
+  left: 10px; /* Place it closer to the left edge */
 }
 
 .nav-logo:hover {
@@ -35,8 +39,9 @@
 
 .nav-menu {
   display: flex;
-  gap: 30px;
+  gap: 15px; /* Reduced gap between items */
   align-items: center;
+  justify-content: center; /* Centering the items */
 }
 
 .nav-link {
@@ -51,6 +56,7 @@
 }
 
 .nav-link:hover {
+  color:white;
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
@@ -76,10 +82,91 @@
   border: 2px solid white;
   cursor: pointer;
   font-family: inherit;
+  ;
+  padding-right: 0; 
+  position: absolute; 
+  right:15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px; /* Ensure consistent height */
+  line-height: normal; /* Reset line height to avoid misalignment */
+  /* Ensuring the "Logout" text is perfectly centered within the button */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px; /* Remove any extra padding */
+  text-align: center; /* Center the text */
 }
 
 .logout-btn:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+.dropdown-toggle {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  background: none;
+  border: none;
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.774);
+  transform: translateY(-2px);
+}
+
+.dropdown-menu {
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  list-style: none;
+}
+
+.dropdown-item {
+  color: white;
+  padding: 8px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: left;
+  background-color: transparent;
+  border: none;
+  transition: background-color 0.3s, color 0.3s;
+  cursor: pointer;
+  list-style: none;
+}
+
+.dropdown-item:hover {
+  color: #ff7043;
+  background-color: transparent;
+  border-radius: 4px;
+}
+
+.nav-item.dropdown {
+  position: relative;
+}
+
+.nav-item.dropdown .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 10rem;
+  padding: 0.5rem 0;
+  background-color: rgba(216, 214, 214, 0.8);
+  border: none;
+  border-radius: 5px;
+}
+
+.nav-item.dropdown:hover .dropdown-menu {
+  display: block;
 }
 
 @media (max-width: 768px) {

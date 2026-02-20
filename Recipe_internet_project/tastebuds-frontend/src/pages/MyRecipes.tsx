@@ -41,9 +41,6 @@ const MyRecipes: React.FC = () => {
     <div className="recipes-container">
       <div className="recipes-header">
         <h1>My Recipes</h1>
-        <Link to="/add-recipe" className="add-recipe-btn">
-          + Add New Recipe
-        </Link>
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -51,9 +48,6 @@ const MyRecipes: React.FC = () => {
       {recipes.length === 0 ? (
         <div className="no-recipes">
           <p>You haven't created any recipes yet. Start by adding your first recipe!</p>
-          <Link to="/add-recipe" className="add-recipe-btn">
-            Add Recipe
-          </Link>
         </div>
       ) : (
         <div className="recipes-grid">

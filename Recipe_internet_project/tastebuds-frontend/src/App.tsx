@@ -51,6 +51,22 @@ function App() {
           }
         />
         <Route
+          path="/add-recipe/manual"
+          element={
+            <ProtectedRoute>
+              <AddRecipe />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-recipe/url"
+          element={
+            <ProtectedRoute>
+              <AddRecipe />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/edit-recipe/:id"
           element={
             <ProtectedRoute>

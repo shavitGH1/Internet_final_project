@@ -1,7 +1,8 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { recipesAPI } from '../services/api';
 import './RecipeForm.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface FormData {
   title: string;
@@ -24,6 +25,8 @@ const AddRecipe: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [url, setUrl] = useState<string>('');
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -51,38 +54,22 @@ const AddRecipe: React.FC = () => {
       await recipesAPI.createRecipe(dataToSend);
       navigate('/recipes');
     } catch (err: any) {
-      // Extract meaningful error messages from the API response
       let errorMessage = 'Failed to add recipe. Please try again.';
       
       if (err.response?.data) {
-        // Check for various error formats
         if (err.response.data.message) {
           errorMessage = err.response.data.message;
         } else if (err.response.data.error) {
           errorMessage = err.response.data.error;
-          
-          // Parse validation errors like "Recipe validation failed: field1: error1, field2: error2"
           if (errorMessage.includes('validation failed:')) {
             const validationPart = errorMessage.split('validation failed:')[1];
             if (validationPart) {
-              // Split by comma and format each error
-              const errors = validationPart.split(',').map(err => {
-                const parts = err.trim().split(':');
-                if (parts.length >= 2) {
-                  const field = parts[0].trim();
-                  const message = parts.slice(1).join(':').trim();
-                  return `• ${message}`;
-                }
-                return `• ${err.trim()}`;
-              });
-              errorMessage = errors.join('\n');
+              errorMessage = validationPart;
             }
           }
         } else if (typeof err.response.data === 'string') {
           errorMessage = err.response.data;
         }
-        
-        // If there are validation errors, format them nicely
         if (err.response.data.errors) {
           const errors = err.response.data.errors;
           if (Array.isArray(errors)) {
@@ -102,112 +89,144 @@ const AddRecipe: React.FC = () => {
     }
   };
 
+  const handleUrlSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await recipesAPI.addRecipeFromUrl({ url });
+      navigate('/recipes');
+    } catch (err: any) {
+      setError('Failed to add recipe from URL. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isManual = location.pathname.includes('/manual');
+  const isUrl = location.pathname.includes('/url');
+
   return (
     <div className="form-container">
       <div className="form-wrapper">
         <h1>Add New Recipe</h1>
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Recipe Title *</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              placeholder="Enter recipe title"
-              maxLength={40}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="imageCover">Image URL *</label>
-            <input
-              type="url"
-              id="imageCover"
-              name="imageCover"
-              value={formData.imageCover}
-              onChange={handleChange}
-              required
-              placeholder="Enter image URL"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Enter recipe description"
-              rows={3}
-            ></textarea>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="ingredients">Ingredients * (one per line)</label>
-            <textarea
-              id="ingredients"
-              name="ingredients"
-              value={formData.ingredients}
-              onChange={handleChange}
-              required
-              placeholder="Enter ingredients (one per line)"
-              rows={4}
-            ></textarea>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="steps">Cooking Steps * (one per line)</label>
-            <textarea
-              id="steps"
-              name="steps"
-              value={formData.steps}
-              onChange={handleChange}
-              required
-              placeholder="Enter cooking steps (one per line)"
-              rows={5}
-            ></textarea>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="cookingTime">Cooking Time (minutes) *</label>
-            <input
-              type="number"
-              id="cookingTime"
-              name="cookingTime"
-              value={formData.cookingTime}
-              onChange={handleChange}
-              required
-              placeholder="Enter cooking time in minutes"
-              min={1}
-            />
-          </div>
-
-          {error && (
-            <div className="error-message">
-              {error.split('\n').map((line, index) => (
-                <div key={index}>{line}</div>
-              ))}
+        {isManual && (
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="title">Recipe Title *</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                placeholder="Enter recipe title"
+                maxLength={40}
+                className="form-control"
+              />
             </div>
-          )}
-
-          <div className="form-actions">
-            <button type="submit" disabled={loading} className="submit-btn">
-              {loading ? 'Adding Recipe...' : 'Add Recipe'}
+            <div className="form-group">
+              <label htmlFor="imageCover">Image URL *</label>
+              <input
+                type="url"
+                id="imageCover"
+                name="imageCover"
+                value={formData.imageCover}
+                onChange={handleChange}
+                required
+                placeholder="Enter image URL"
+                className="form-control"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Enter recipe description"
+                rows={3}
+                className="form-control"
+              ></textarea>
+            </div>
+            <div className="form-group">
+              <label htmlFor="ingredients">Ingredients * (one per line)</label>
+              <textarea
+                id="ingredients"
+                name="ingredients"
+                value={formData.ingredients}
+                onChange={handleChange}
+                required
+                placeholder="Enter ingredients (one per line)"
+                rows={4}
+                className="form-control"
+              ></textarea>
+            </div>
+            <div className="form-group">
+              <label htmlFor="steps">Cooking Steps * (one per line)</label>
+              <textarea
+                id="steps"
+                name="steps"
+                value={formData.steps}
+                onChange={handleChange}
+                required
+                placeholder="Enter cooking steps (one per line)"
+                rows={5}
+                className="form-control"
+              ></textarea>
+            </div>
+            <div className="form-group">
+              <label htmlFor="cookingTime">Cooking Time (minutes) *</label>
+              <input
+                type="number"
+                id="cookingTime"
+                name="cookingTime"
+                value={formData.cookingTime}
+                onChange={handleChange}
+                required
+                placeholder="Enter cooking time in minutes"
+                min={1}
+                className="form-control"
+              />
+            </div>
+            {error && (
+              <div className="error-message">
+                {error.split('\n').map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
+              </div>
+            )}
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Adding...' : 'Add Recipe'}
+              </button>
+            </div>
+          </form>
+        )}
+        {isUrl && (
+          <form onSubmit={handleUrlSubmit}>
+            <div className="form-group">
+              <label htmlFor="url">Recipe URL *</label>
+              <input
+                type="url"
+                id="url"
+                name="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                required
+                className="form-control"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="btn btn-success">
+              {loading ? 'Adding...' : 'Add Recipe via URL'}
             </button>
-            <button
-              type="button"
-              onClick={() => navigate('/recipes')}
-              className="cancel-btn"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+          </form>
+        )}
+        {error && <div className="error-message">{error}</div>}
       </div>
     </div>
   );

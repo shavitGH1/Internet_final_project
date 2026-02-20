@@ -1,12 +1,28 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { isAuthenticated, clearTokens, getUserEmail } from '../utils/auth';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './Navigation.css';
-
 const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
   const userEmail = getUserEmail();
+
+  const [addRecipeDropdownOpen, setAddRecipeDropdownOpen] = useState(false);
+  const addRecipeDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (addRecipeDropdownRef.current && !addRecipeDropdownRef.current.contains(event.target as Node)) {
+        setAddRecipeDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
     clearTokens();
@@ -29,9 +45,23 @@ const Navigation: React.FC = () => {
               <NavLink to="/my-recipes" className="nav-link">
                 My Recipes
               </NavLink>
-              <NavLink to="/add-recipe" className="nav-link">
-                Add Recipe
-              </NavLink>
+              <div className="nav-item dropdown" ref={addRecipeDropdownRef}>
+                <span className="nav-link dropdown-label">
+                  + Add Recipe
+                </span>
+                <ul className="dropdown-menu">
+                  <li>
+                    <button className="dropdown-item" onClick={() => navigate('/add-recipe/manual')}>
+                      Add Manually
+                    </button>
+                  </li>
+                  <li>
+                    <button className="dropdown-item" onClick={() => navigate('/add-recipe/url')}>
+                      Add via URL
+                    </button>
+                  </li>
+                </ul>
+              </div>
               <span className="nav-greeting">
                 Hello, {userEmail}!
               </span>
