@@ -29,25 +29,34 @@ const generateToken = (userId) => {
     return { token, refreshToken };
 };
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // ... (logic as before)
-    const { email, password } = req.body;
-    if (!email || !password)
-        return sendError(res, "Email and password are required", 401);
+    const { email, password, username, profilePic } = req.body;
+    if (!email || !password || !username) {
+        return sendError(res, "Email, password and username are required", 400);
+    }
     try {
         const salt = yield bcrypt_1.default.genSalt(10);
         const encryptedPassword = yield bcrypt_1.default.hash(password, salt);
-        const user = yield userModel_1.default.create({ email, password: encryptedPassword });
+        const user = yield userModel_1.default.create({
+            email,
+            password: encryptedPassword,
+            username,
+            profilePic: profilePic || "./public/avatar.png"
+        });
         const tokens = generateToken(user._id.toString());
+        if (!user.refreshToken)
+            user.refreshToken = [];
         user.refreshToken.push(tokens.refreshToken);
         yield user.save();
-        res.status(201).json(tokens);
+        res.status(201).json(Object.assign(Object.assign({}, tokens), { username: user.username, userProfilePic: user.profilePic, email: user.email }));
     }
     catch (error) {
-        return sendError(res, "Registration failed", 401);
+        if (error.code === 11000) {
+            return sendError(res, "Email or Username already exists", 400);
+        }
+        return sendError(res, "Registration failed", 500);
     }
 });
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // ... (logic as before)
     const { email, password } = req.body;
     if (!email || !password)
         return sendError(res, "Email and password are required");
@@ -68,7 +77,6 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // ... (logic as before)
     const { refreshToken } = req.body;
     if (!refreshToken)
         return sendError(res, "Refresh token is required", 401);
@@ -111,19 +119,17 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 });
 const restrictTo = (...roles) => {
     return (req, res, next) => {
-        // יש לוודא שהמודל של User כולל שדה 'role'
         if (!req.user || !roles.includes(req.user.role)) {
             return sendError(res, 'You do not have permission to perform this action', 403);
         }
         next();
     };
 };
-// --- עדכון הייצוא הראשי לכלול את כל הפונקציות ---
 exports.default = {
     register,
     login,
     refreshToken,
-    protect, // נוסף
-    restrictTo // נוסף
+    protect,
+    restrictTo
 };
 //# sourceMappingURL=authController.js.map

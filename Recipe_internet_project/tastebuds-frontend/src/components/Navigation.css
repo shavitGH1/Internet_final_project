@@ -7,6 +7,7 @@
   z-index: 1000;
   border-bottom: 3px solid rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(10px);
+  min-height: 70px; 
 }
 
 .nav-container {
@@ -27,10 +28,6 @@
   align-items: center;
   gap: 10px;
   transition: transform 0.2s;
-  margin-left: 0; /* Removing any extra margin */
-  padding-left: 0; /* Remove any padding */
-  position: absolute; /* Position the logo absolutely */
-  left: 10px; /* Place it closer to the left edge */
 }
 
 .nav-logo:hover {
@@ -39,9 +36,10 @@
 
 .nav-menu {
   display: flex;
-  gap: 15px; /* Reduced gap between items */
+  gap: 15px;
   align-items: center;
-  justify-content: center; /* Centering the items */
+  justify-content: flex-end; 
+  flex-grow: 1;
 }
 
 .nav-link {
@@ -61,91 +59,58 @@
   transform: translateY(-2px);
 }
 
-.nav-link.active {
-  background: rgba(255, 255, 255, 0.35);
-  border-bottom: 3px solid white;
-  font-weight: 700;
+.nav-profile-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 25px;
+  transition: background 0.3s;
+  margin: 0 10px;
+}
+
+.nav-profile-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  margin-right: 10px;
 }
 
 .nav-greeting {
   color: white;
   font-weight: 600;
-  font-size: 16px;
-  padding: 8px 15px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.15);
-  display: inline-block;
+  font-size: 15px;
+}
+
+.admin-tag {
+  color: #ffc107 !important;
+  font-weight: bold;
+  border: 1px solid #ffc107;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 10px;
 }
 
 .logout-btn {
   background: rgba(255, 255, 255, 0.3);
   border: 2px solid white;
+  color: white;
   cursor: pointer;
-  font-family: inherit;
-  ;
-  padding-right: 0; 
-  position: absolute; 
-  right:15px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px; /* Ensure consistent height */
-  line-height: normal; /* Reset line height to avoid misalignment */
-  /* Ensuring the "Logout" text is perfectly centered within the button */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px; /* Remove any extra padding */
-  text-align: center; /* Center the text */
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: all 0.3s;
+  margin-left: 10px;
 }
 
 .logout-btn:hover {
   background: rgba(255, 255, 255, 0.5);
-}
-
-.dropdown-toggle {
-  color: white;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 16px;
-  padding: 8px 15px;
-  border-radius: 5px;
-  background: none;
-  border: none;
-  transition: all 0.3s;
-  display: inline-block;
-}
-
-.dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.774);
-  transform: translateY(-2px);
-}
-
-.dropdown-menu {
-  border: none;
-  border-radius: 5px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 0;
-  list-style: none;
-}
-
-.dropdown-item {
-  color: white;
-  padding: 8px 15px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: left;
-  background-color: transparent;
-  border: none;
-  transition: background-color 0.3s, color 0.3s;
-  cursor: pointer;
-  list-style: none;
-}
-
-.dropdown-item:hover {
-  color: #ff7043;
-  background-color: transparent;
-  border-radius: 4px;
 }
 
 .nav-item.dropdown {
@@ -160,39 +125,43 @@
   z-index: 1000;
   min-width: 10rem;
   padding: 0.5rem 0;
-  background-color: rgba(216, 214, 214, 0.8);
-  border: none;
+  background-color: white;
   border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.nav-item.dropdown:hover .dropdown-menu {
+.nav-item.dropdown:hover .dropdown-menu, 
+.dropdown-menu.show {
   display: block;
+}
+
+.dropdown-item {
+  color: #333;
+  padding: 8px 20px;
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #ff4081;
 }
 
 @media (max-width: 768px) {
   .nav-container {
     flex-direction: column;
-    gap: 15px;
+    padding: 10px;
   }
-
   .nav-menu {
-    width: 100%;
-    justify-content: center;
     flex-wrap: wrap;
-    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
   }
-
-  .nav-logo {
-    font-size: 20px;
-  }
-
-  .nav-link {
-    font-size: 14px;
-    padding: 6px 12px;
-  }
-  .nav-link.nav-link:clicked {
-    background: rgba(255, 255, 255, 0.35);
-    border-bottom: 3px solid white;
-    color: white;
+  .nav-avatar {
+    width: 32px !important;
+    height: 32px !important;
   }
 }

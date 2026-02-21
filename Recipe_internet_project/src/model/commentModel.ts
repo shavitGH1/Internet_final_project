@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Query } from 'mongoose'; // הוספנו כאן את Query
+import mongoose, { Schema, Document, Query } from 'mongoose'; 
 
 export interface IComment extends Document {
     comment: string;
@@ -7,11 +7,9 @@ export interface IComment extends Document {
     recipe: mongoose.Schema.Types.ObjectId;
 }
 
-// הגדרת טיפוס עבור המסמך המלא
 interface ICommentDocument extends IComment, Document {}
 
 const commentSchema: Schema = new mongoose.Schema({
-    // ... (שאר הסכימה נשארת ללא שינוי)
     comment: {
         type: String,
         required: [true, 'Comment can not be empty!']

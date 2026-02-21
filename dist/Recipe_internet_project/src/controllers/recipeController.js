@@ -82,7 +82,7 @@ class RecipeController extends baseController_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            req.body.user = userId; // שינינו מ-createdBy ל-user בהתאם למודל החדש
+            req.body.user = userId; // Remove Hebrew comment
             return _super.post.call(this, req, res);
         });
     }

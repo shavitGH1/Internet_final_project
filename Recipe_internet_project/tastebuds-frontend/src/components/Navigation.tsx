@@ -3,10 +3,15 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { isAuthenticated, clearTokens, getUserEmail } from '../utils/auth';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Navigation.css';
+
 const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
   const userEmail = getUserEmail();
+  
+  // --- נתונים מה-LocalStorage ---
+  const profilePic = localStorage.getItem('profilePic');
+  const username = localStorage.getItem('userUsername');
 
   const [addRecipeDropdownOpen, setAddRecipeDropdownOpen] = useState(false);
   const addRecipeDropdownRef = useRef<HTMLDivElement>(null);
@@ -45,26 +50,45 @@ const Navigation: React.FC = () => {
               <NavLink to="/my-recipes" className="nav-link">
                 My Recipes
               </NavLink>
+
               <div className="nav-item dropdown" ref={addRecipeDropdownRef}>
-                <span className="nav-link dropdown-label">
+                <span 
+                  className="nav-link dropdown-label" 
+                  onClick={() => setAddRecipeDropdownOpen(!addRecipeDropdownOpen)}
+                >
                   + Add Recipe
                 </span>
-                <ul className="dropdown-menu">
+                <ul className={`dropdown-menu ${addRecipeDropdownOpen ? 'show' : ''}`}>
                   <li>
-                    <button className="dropdown-item" onClick={() => navigate('/add-recipe/manual')}>
+                    <button className="dropdown-item" onClick={() => { navigate('/add-recipe/manual'); setAddRecipeDropdownOpen(false); }}>
                       Add Manually
                     </button>
                   </li>
                   <li>
-                    <button className="dropdown-item" onClick={() => navigate('/add-recipe/url')}>
+                    <button className="dropdown-item" onClick={() => { navigate('/add-recipe/url'); setAddRecipeDropdownOpen(false); }}>
                       Add via URL
                     </button>
                   </li>
                 </ul>
               </div>
-              <span className="nav-greeting">
-                Hello, {userEmail}!
-              </span>
+
+              {/* פרופיל משתמש עם תיקון לתמונה שבורה */}
+              <NavLink to="/profile" className="nav-profile-link">
+                <img 
+                  src={profilePic || '/avatar.png'} 
+                  alt="Profile" 
+                  className="nav-avatar"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null; 
+                    target.src = '/avatar.png';
+                  }}
+                />
+                <span className="nav-greeting">
+                   {username || userEmail?.split('@')[0]}
+                </span>
+              </NavLink>
+
               <button onClick={handleLogout} className="nav-link logout-btn">
                 Logout
               </button>

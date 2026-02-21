@@ -1,19 +1,17 @@
-//import 'express-async-errors'; 
 import express, { Express } from "express";
 const app = express();
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.dev" });
 import cors from "cors";
-import recipeRoutes from "./routes/recipesRoutes"; // recipes router
+import recipeRoutes from "./routes/recipesRoutes"; 
 import commentRoutes from "./routes/commentRoutes";
 import authRoutes from "./routes/authRoutes";
+import userRoute from "./routes/userRoute"; 
 import { specs, swaggerUi } from "./swagger";
 
 const intApp = () => {
   const promise = new Promise<Express>((resolve, reject) => {
-    // Enable CORS for frontend communication
-    // Use FRONTEND_URL env var when set, otherwise default to localhost:3000
     const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
     app.use(cors({
       origin: frontendOrigin,
@@ -22,10 +20,9 @@ const intApp = () => {
       allowedHeaders: ['Content-Type','Authorization']
     }));
     
-    app.use(express.urlencoded({ extended: false }));
-    app.use(express.json());
+    app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+    app.use(express.json({ limit: '50mb' }));
 
-    // Request logging middleware
     app.use((req, res, next) => {
       const startTime = Date.now();
       res.on('finish', () => {
@@ -35,22 +32,21 @@ const intApp = () => {
       next();
     });
 
-    // Swagger Documentation
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, {
       explorer: true,
       customCss: ".swagger-ui .topbar { display: none }",
-      customSiteTitle: "Recipe & Comments API Documentation" // הכותרת שונתה
+      customSiteTitle: "Recipe & Comments API Documentation" 
     }));
 
-    // Swagger JSON endpoint
     app.get("/api-docs.json", (req, res) => {
       res.setHeader("Content-Type", "application/json");
       res.send(specs);
     });
 
-    app.use("/recipes", recipeRoutes); // recipes endpoints
+    app.use("/recipes", recipeRoutes); 
     app.use("/comment", commentRoutes);
     app.use("/auth", authRoutes);
+    app.use("/user", userRoute); 
 
     const dbUri = process.env.MONGODB_URI;
     if (!dbUri) {

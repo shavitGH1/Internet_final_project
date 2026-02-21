@@ -1,10 +1,18 @@
 // Auth utilities
-export const setTokens = (token: string, refreshToken: string, userEmail?: string): void => {
+// src/utils/auth.ts
+
+export const setTokens = (
+  token: string, 
+  refreshToken: string, 
+  email: string, 
+  profilePic: string,
+  username: string
+) => {
   localStorage.setItem('token', token);
   localStorage.setItem('refreshToken', refreshToken);
-  if (userEmail) {
-    localStorage.setItem('userEmail', userEmail);
-  }
+  localStorage.setItem('userEmail', email);
+  localStorage.setItem('userUsername', username);
+  localStorage.setItem('profilePic', profilePic);
 };
 
 export const getToken = (): string | null => {
@@ -23,6 +31,8 @@ export const clearTokens = (): void => {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('userEmail');
+  localStorage.removeItem('profilePic');
+  localStorage.removeItem('userUsername');
 };
 
 export const isAuthenticated = (): boolean => {

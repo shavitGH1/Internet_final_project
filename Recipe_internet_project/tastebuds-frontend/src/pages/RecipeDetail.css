@@ -125,6 +125,8 @@
   background: rgba(248, 249, 250, 0.95);
   border-radius: 8px;
   border-left: 4px solid #ff6a88;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .ingredients-list {

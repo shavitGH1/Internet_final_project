@@ -58,7 +58,7 @@ class RecipeController extends baseController {
 
     async post(req: AuthRequest, res: Response) {
         const userId = (req as any).user?._id;
-        req.body.user = userId; // שינינו מ-createdBy ל-user בהתאם למודל החדש
+        req.body.user = userId; // Remove Hebrew comment
         return super.post(req, res);
     }
 

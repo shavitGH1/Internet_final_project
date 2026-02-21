@@ -9,6 +9,7 @@ import MyRecipes from './pages/MyRecipes';
 import AddRecipe from './pages/AddRecipe';
 import EditRecipe from './pages/EditRecipe';
 import RecipeDetail from './pages/RecipeDetail';
+import Profile from './pages/Profile'; 
 import './App.css';
 
 function App() {
@@ -18,6 +19,19 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* עמוד הפרופיל החדש */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+    
+
         <Route
           path="/recipes"
           element={
