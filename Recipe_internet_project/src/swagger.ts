@@ -31,7 +31,7 @@ const options: swaggerJsdoc.Options = {
             schemas: {
                 User: {
                     type: "object",
-                    required: ["email", "password"],
+                    required: ["email", "password", "username"],
                     properties: {
                         _id: {
                             type: "string",
@@ -49,6 +49,23 @@ const options: swaggerJsdoc.Options = {
                             minLength: 6,
                             description: "User password (hashed when stored)",
                             example: "password123",
+                        },
+                        username: {
+                            type: "string",
+                            description: "Unique username for the user",
+                            example: "newUsername",
+                        },
+                        profilePic: {
+                            type: "string",
+                            description: "URL of the user's profile picture",
+                            example: "/avatar.png",
+                        },
+                        refreshToken: {
+                            type: "array",
+                            items: {
+                                type: "string",
+                            },
+                            description: "List of refresh tokens issued to the user",
                         },
                     },
                 },
