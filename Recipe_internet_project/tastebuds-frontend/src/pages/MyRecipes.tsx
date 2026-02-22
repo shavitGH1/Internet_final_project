@@ -18,9 +18,9 @@ const MyRecipes: React.FC = () => {
     try {
       setLoading(true);
       const response = await recipesAPI.getAllRecipes();
-      // Filter to show only current user's recipes
+      // סינון המתכונים של המשתמש הנוכחי
       const myRecipes = response.data.filter(recipe => 
-        recipe.user && typeof recipe.user === 'object' && recipe.user._id === currentUserId
+        recipe.user && typeof recipe.user === 'object' && (recipe.user as any)._id === currentUserId
       );
       setRecipes(myRecipes);
       setError('');
@@ -32,6 +32,19 @@ const MyRecipes: React.FC = () => {
     }
   };
 
+  const handleLike = async (e: React.MouseEvent, recipeId: string) => {
+    e.preventDefault();
+    try {
+      const response = await recipesAPI.toggleFavorite(recipeId);
+      setRecipes(prevRecipes => 
+        prevRecipes.map(r => 
+          r._id === recipeId ? { ...r, favorites: response.data.favorites } : r
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle favorite", err);
+    }
+  };
 
   if (loading) {
     return <div className="loading">Loading your recipes...</div>;
@@ -51,29 +64,64 @@ const MyRecipes: React.FC = () => {
         </div>
       ) : (
         <div className="recipes-grid">
-          {recipes.map((recipe) => (
-            <div key={recipe._id} className="recipe-card">
-              <Link to={`/recipes/${recipe._id}`} className="recipe-card-link">
-                {recipe.imageCover ? (
-                  <div className="recipe-thumbnail">
-                    <img src={recipe.imageCover} alt={recipe.title} />
-                  </div>
-                ) : (
-                  <div className="recipe-thumbnail placeholder">
-                    <span>No image</span>
-                  </div>
-                )}
+          {recipes.map((recipe) => {
+            // פתרון שגיאה 1: המרה ל-any כדי לעקוף את בעיית הטיפוס ב-includes
+            const favoritesList = (recipe.favorites || []) as any[];
+            const isLiked = favoritesList.includes(currentUserId);
 
-                <div className="recipe-content">
-                  <h2 className="recipe-title">{recipe.title}</h2>
-                  {(() => {
-                    const author = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).email : (recipe.user || 'Unknown');
-                    return <p className="recipe-author">{author}</p>;
-                  })()}
+            return (
+              <div key={recipe._id} className="recipe-card" style={{ position: 'relative' }}>
+                <div 
+                  className="like-icon-container"
+                  // פתרון שגיאה 2: שימוש ב-! כדי להבטיח ל-TS שה-ID קיים
+                  onClick={(e) => handleLike(e, recipe._id!)}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    zIndex: 2,
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '50%',
+                    width: '35px',
+                    height: '35px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <i 
+                    className={`bi ${isLiked ? 'bi-heart-fill' : 'bi-heart'}`} 
+                    style={{ color: isLiked ? '#ff4d4d' : '#666', fontSize: '1.2rem' }}
+                  ></i>
                 </div>
-              </Link>
-            </div>
-          ))}
+
+                <Link to={`/recipes/${recipe._id}`} className="recipe-card-link">
+                  {recipe.imageCover ? (
+                    <div className="recipe-thumbnail">
+                      <img src={recipe.imageCover} alt={recipe.title} />
+                    </div>
+                  ) : (
+                    <div className="recipe-thumbnail placeholder">
+                      <span>No image</span>
+                    </div>
+                  )}
+
+                  <div className="recipe-content">
+                    <h2 className="recipe-title">{recipe.title}</h2>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p className="recipe-author">
+                        {recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username : 'Me'}
+                      </p>
+                      <span className="likes-count" style={{ fontSize: '0.9rem', color: '#888' }}>
+                        {recipe.favorites?.length || 0} ❤️
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

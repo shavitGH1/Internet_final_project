@@ -28,6 +28,22 @@ const Recipes: React.FC = () => {
     }
   };
 
+  // פונקציית הלייק - זהה לזו שהוספנו ב-MyRecipes
+  const handleLike = async (e: React.MouseEvent, recipeId: string) => {
+    e.preventDefault(); // מונע מעבר דף בלחיצה על הלב
+    try {
+      const response = await recipesAPI.toggleFavorite(recipeId);
+      // עדכון ה-State המקומי כדי שהלב ייצבע מיד
+      setRecipes(prevRecipes => 
+        prevRecipes.map(r => 
+          r._id === recipeId ? { ...r, favorites: response.data.favorites } : r
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle favorite", err);
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading recipes...</div>;
   }
@@ -49,29 +65,69 @@ const Recipes: React.FC = () => {
         </div>
       ) : (
         <div className="recipes-grid">
-          {recipes.map((recipe) => (
-            <div key={recipe._id} className="recipe-card">
-              <Link to={`/recipes/${recipe._id}`} className="recipe-card-link">
-                {recipe.imageCover ? (
-                  <div className="recipe-thumbnail">
-                    <img src={recipe.imageCover} alt={recipe.title} />
-                  </div>
-                ) : (
-                  <div className="recipe-thumbnail placeholder">
-                    <span>No image</span>
-                  </div>
-                )}
+          {recipes.map((recipe) => {
+            // לוגיקת בדיקת הלייק (עם עקיפת TS כפי שעשינו קודם)
+            const favoritesList = (recipe.favorites || []) as any[];
+            const isLiked = favoritesList.includes(currentUserId);
 
-                <div className="recipe-content">
-                  <h2 className="recipe-title">{recipe.title}</h2>
-                  {(() => {
-                    const author = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).email : (recipe.user || 'Unknown');
-                    return <p className="recipe-author">{author}</p>;
-                  })()}
+            return (
+              <div key={recipe._id} className="recipe-card" style={{ position: 'relative' }}>
+                
+                {/* כפתור הלב שצף מעל הכרטיס */}
+                <div 
+                  className="like-icon-container"
+                  onClick={(e) => handleLike(e, recipe._id!)}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    zIndex: 2,
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    borderRadius: '50%',
+                    width: '35px',
+                    height: '35px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <i 
+                    className={`bi ${isLiked ? 'bi-heart-fill' : 'bi-heart'}`} 
+                    style={{ color: isLiked ? '#ff4d4d' : '#666', fontSize: '1.2rem' }}
+                  ></i>
                 </div>
-              </Link>
-            </div>
-          ))}
+
+                <Link to={`/recipes/${recipe._id}`} className="recipe-card-link">
+                  {recipe.imageCover ? (
+                    <div className="recipe-thumbnail">
+                      <img src={recipe.imageCover} alt={recipe.title} />
+                    </div>
+                  ) : (
+                    <div className="recipe-thumbnail placeholder">
+                      <span>No image</span>
+                    </div>
+                  )}
+
+                  <div className="recipe-content">
+                    <h2 className="recipe-title">{recipe.title}</h2>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      {(() => {
+                        const author = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username || (recipe.user as any).email : 'Unknown';
+                        return <p className="recipe-author" style={{ margin: 0 }}>{author}</p>;
+                      })()}
+                      
+                      {/* הצגת כמות הלייקים ליד שם הכותב */}
+                      <span className="likes-count" style={{ fontSize: '0.85rem', color: '#888' }}>
+                         {recipe.favorites?.length || 0} ❤️
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

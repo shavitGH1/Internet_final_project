@@ -274,3 +274,36 @@
 @media (max-width: 480px) {
   .recipes-grid { grid-template-columns: 1fr; }
 }
+
+.recipe-card {
+  position: relative; /* קריטי כדי שהלב יתמקם יחסית לכרטיס */
+}
+
+.like-icon-container {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
+  background: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.like-icon-container:hover {
+  transform: scale(1.1);
+}
+
+.bi-heart-fill {
+  color: #ff4d4d;
+}
+
+.bi-heart {
+  color: #666;
+}

@@ -99,4 +99,5 @@ export const commentsAPI = {
     apiClient.post<Comment>(`/recipes/${recipeId}/comments`, commentData),
 };
 
+
 export default apiClient;

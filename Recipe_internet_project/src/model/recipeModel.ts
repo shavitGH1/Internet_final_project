@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRecipe extends Document {
+    _id: string; 
     title: string;
     description: string;
     ingredients: string[];
@@ -8,8 +9,8 @@ export interface IRecipe extends Document {
     cookingTime: number;
     imageCover: string;
     createdAt: Date;
-    favorites: mongoose.Schema.Types.ObjectId[];
-    user: mongoose.Schema.Types.ObjectId;
+    favorites: mongoose.Types.ObjectId[]; 
+    user: mongoose.Types.ObjectId;
 }
 
 const recipeSchema: Schema = new mongoose.Schema({
@@ -49,10 +50,14 @@ const recipeSchema: Schema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: [true, 'Recipe must belong to a User']
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now // הוספת תאריך יצירה אוטומטי
     }
 });
 
-recipeSchema.index({ title: 1, difficulty: 1 });
+recipeSchema.index({ title: 1 });
 
 const Recipe = mongoose.model<IRecipe>('Recipe', recipeSchema);
 
