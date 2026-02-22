@@ -12,6 +12,7 @@ import RecipeDetail from './pages/RecipeDetail';
 import Profile from './pages/Profile'; 
 import './App.css';
 
+
 function App() {
   return (
     <Router>

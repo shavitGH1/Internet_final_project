@@ -94,9 +94,14 @@ export const recipesAPI = {
 };
 
 export const commentsAPI = {
-  getComments: (recipeId: string) => apiClient.get<Comment[]>(`/recipes/${recipeId}/comments`),
-  addComment: (recipeId: string, commentData: Partial<Comment>) =>
-    apiClient.post<Comment>(`/recipes/${recipeId}/comments`, commentData),
+  getByRecipe: (recipeId: string) => 
+    apiClient.get(`/comments/recipe/${recipeId}`),
+    
+  addComment: (commentData: { recipe: string; comment: string }) => 
+    apiClient.post('/comments', commentData),
+    
+  deleteComment: (commentId: string) => 
+    apiClient.delete(`/comments/${commentId}`)
 };
 
 

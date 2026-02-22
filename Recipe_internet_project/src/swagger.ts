@@ -126,11 +126,17 @@ const options: swaggerJsdoc.Options = {
                             description: "ID of the user who created this recipe",
                             example: "507f1f77bcf86cd799439011",
                         },
+                        favorites: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of user IDs who favorited the recipe",
+                            example: ["user1", "user2"],
+                        },
                     },
                 },
                 Comment: {
                     type: "object",
-                    required: ["comment", "recipe", "writerId"],
+                    required: ["comment", "recipe", "user"],
                     properties: {
                         _id: {
                             type: "string",
@@ -139,18 +145,24 @@ const options: swaggerJsdoc.Options = {
                         },
                         comment: {
                             type: "string",
-                            description: "Comment message content",
-                            example: "Great recipe! Loved the flavors.",
+                            description: "Content of the comment",
+                            example: "This recipe is amazing!",
                         },
                         recipe: {
                             type: "string",
-                            description: "ID of the recipe this comment belongs to",
+                            description: "ID of the recipe the comment belongs to",
                             example: "507f1f77bcf86cd799439011",
                         },
-                        writerId: {
+                        user: {
                             type: "string",
-                            description: "ID of the user who wrote this comment",
+                            description: "ID of the user who wrote the comment",
                             example: "507f1f77bcf86cd799439011",
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Timestamp when the comment was created",
+                            example: "2026-02-23T10:00:00Z",
                         },
                     },
                 },

@@ -1,3 +1,6 @@
+/* =========================================
+   1. העיצוב הראשי של ה-Navbar
+========================================= */
 .navbar {
   background: linear-gradient(135deg, #ff7043 0%, #ff4081 50%, #ff6b9d 100%);
   padding: 15px 0;
@@ -10,15 +13,18 @@
   min-height: 70px; 
 }
 
+/* הפריסה הכללית: מותח את התפריט על כל המסך */
 .nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  width: 100%;
+  max-width: 100%; 
+  padding: 0 40px; 
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
 
+/* =========================================
+   2. אזור הלוגו (צד שמאל)
+========================================= */
 .nav-logo {
   color: white;
   text-decoration: none;
@@ -28,18 +34,24 @@
   align-items: center;
   gap: 10px;
   transition: transform 0.2s;
+  flex: 1; /* נותן ללוגו שטח משלו משמאל */
+  justify-content: flex-start;
 }
 
 .nav-logo:hover {
   transform: scale(1.05);
+  color: white;
 }
 
+/* =========================================
+   3. אמצע התפריט (קישורים ופרופיל)
+========================================= */
 .nav-menu {
   display: flex;
   gap: 15px;
   align-items: center;
-  justify-content: flex-end; 
-  flex-grow: 1;
+  justify-content: center; /* ממרכז את הקישורים הפנימיים */
+  flex: 3; /* נותן לאזור הזה את רוב השטח כדי שהקישורים יהיו באמצע */
 }
 
 .nav-link {
@@ -51,22 +63,23 @@
   padding: 8px 15px;
   border-radius: 5px;
   display: inline-block;
+  cursor: pointer;
 }
 
 .nav-link:hover {
-  color:white;
+  color: white;
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
+/* אזור תמונת הפרופיל והשם - נשאר באמצע ליד הקישורים */
 .nav-profile-link {
   display: flex;
   align-items: center;
   text-decoration: none;
-  padding: 5px 10px;
+  padding: 5px 15px;
   border-radius: 25px;
   transition: background 0.3s;
-  margin: 0 10px;
 }
 
 .nav-profile-link:hover {
@@ -88,33 +101,67 @@
   font-size: 15px;
 }
 
-.admin-tag {
-  color: #ffc107 !important;
-  font-weight: bold;
-  border: 1px solid #ffc107;
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-right: 10px;
+/* =========================================
+   4. צד ימין: כפתורי פעולה (התנתקות / התחברות)
+========================================= */
+/* שורת הקסם: דוחפת ספציפית את הכפתורים האלו (וכל מה שאחריהם) לקצה הימני של המסך */
+.logout-btn,
+.login-btn {
+  margin-left: auto !important; 
 }
 
+/* כפתור התנתקות (Logout) */
 .logout-btn {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
   border: 2px solid white;
   color: white;
-  cursor: pointer;
-  padding: 8px 15px;
-  border-radius: 5px;
+  border-radius: 25px;
   font-weight: bold;
-  transition: all 0.3s;
-  margin-left: 10px;
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.4);
 }
 
+/* כפתור התחברות (Login) לאורחים */
+.login-btn {
+  background-color: white !important;
+  color: #ff4081 !important;
+  border-radius: 25px;
+  padding: 8px 25px !important;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+}
+
+.login-btn:hover {
+  background-color: #f8f9fa !important;
+  color: #ff6b9d !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* כפתור הרשמה (Register) */
+.register-btn {
+  background: transparent !important;
+  border: 2px solid white;
+  border-radius: 25px;
+  padding: 6px 20px !important;
+}
+
+.register-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* =========================================
+   5. תפריט הוספת מתכון (Dropdown)
+========================================= */
 .nav-item.dropdown {
   position: relative;
+}
+
+.dropdown-label {
+  cursor: pointer;
 }
 
 .nav-item.dropdown .dropdown-menu {
@@ -123,43 +170,73 @@
   top: 100%;
   left: 0;
   z-index: 1000;
-  min-width: 10rem;
+  min-width: 12rem;
   padding: 0.5rem 0;
   background-color: white;
-  border-radius: 5px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border: none;
+  overflow: hidden;
 }
 
 .nav-item.dropdown:hover .dropdown-menu, 
 .dropdown-menu.show {
   display: block;
+  animation: fadeIn 0.2s ease;
 }
 
 .dropdown-item {
-  color: #333;
-  padding: 8px 20px;
+  color: #444;
+  padding: 10px 20px;
   display: block;
   width: 100%;
   border: none;
   background: none;
   text-align: left;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .dropdown-item:hover {
-  background-color: #f8f9fa;
+  background-color: #fff0f3;
   color: #ff4081;
+  padding-left: 25px;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   6. התאמה למסכים קטנים (Mobile Responsive)
+========================================= */
 @media (max-width: 768px) {
   .nav-container {
     flex-direction: column;
-    padding: 10px;
+    padding: 15px;
   }
+  
+  .nav-logo {
+    margin-right: 0;
+    margin-bottom: 15px;
+    justify-content: center;
+  }
+
   .nav-menu {
     flex-wrap: wrap;
     justify-content: center;
+    width: 100%;
+    gap: 10px;
+  }
+
+  /* מבטל את ההדיפה האוטומטית ימינה כשאנחנו בטלפון */
+  .logout-btn,
+  .login-btn {
+    margin-left: 0 !important;
     margin-top: 10px;
   }
+
   .nav-avatar {
     width: 32px !important;
     height: 32px !important;

@@ -44,7 +44,7 @@ const intApp = () => {
     });
 
     app.use("/recipes", recipeRoutes); 
-    app.use("/comment", commentRoutes);
+    app.use("/comments", commentRoutes);
     app.use("/auth", authRoutes);
     app.use("/user", userRoute); 
 
