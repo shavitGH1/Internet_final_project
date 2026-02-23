@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../model/userModel";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 
@@ -66,11 +66,16 @@ const register = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
+    console.log(`[LOGIN] Attempt - email: ${email}, has password: ${!!password}, body keys: ${JSON.stringify(Object.keys(req.body))}`);
+    console.log(`[LOGIN] Content-Type: ${req.headers['content-type']}, Body raw: ${JSON.stringify(req.body).substring(0, 200)}`);
     try {
         const user = await User.findOne({ email });
+        console.log(`[LOGIN] User found: ${!!user}, email searched: "${email}"`);
         if (!user || !(await bcrypt.compare(password, user.password))) {
+            console.log(`[LOGIN] Failed - user exists: ${!!user}, password match: ${user ? 'checked' : 'skipped'}`);
             return sendError(res, "Invalid credentials", 401);
         }
+        console.log(`[LOGIN] Success for user: ${user.email}`);
         const tokens = generateToken(user._id.toString());
         user.refreshToken.push(tokens.refreshToken);
         await user.save();

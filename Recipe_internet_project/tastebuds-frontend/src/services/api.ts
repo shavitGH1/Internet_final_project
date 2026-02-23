@@ -65,7 +65,7 @@ apiClient.interceptors.response.use(
 );
 
 export const authAPI = {
-  register: (email: string, password: string, profilePic?: string, username?: string) =>
+  register: (email: string, username: string, password: string, profilePic?: string) =>
     apiClient.post<AuthResponse>('/auth/register', { email, password, profilePic, username }),
   
   login: (email: string, password: string) =>

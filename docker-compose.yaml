@@ -1,0 +1,51 @@
+services:
+  tastebuds-backend:
+    build:
+      context: .
+      dockerfile: Recipe_internet_project/Dockerfile
+    image: internet_final_project-tastebuds-backend:latest
+    container_name: tastebuds-backend
+    ports:
+      - "127.0.0.1:4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - MONGODB_URI=mongodb://admin:bartar20%40CS@host.docker.internal:21771/recipeDB?authSource=admin
+      - FRONTEND_URL=http://node77.cs.colman.ac.il
+      - BASE_URL=http://node77.cs.colman.ac.il:4000
+      - JWT_SECRET=${JWT_SECRET:-GS11124}
+      - JWT_EXPIRES_IN=3600
+      - JWT_REFRESH_EXPIRES_IN=86400
+      - GEMINI_API_KEY=AIzaSyAWfellT4nnmmmfHuVOz3jr1KyaVk73Hjc
+      - GOOGLE_CLIENT_ID=839760166664-17jklsi9a7dg566r43cco7khftmb7dko.apps.googleusercontent.com
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  tastebuds-frontend:
+    build:
+      context: ./Recipe_internet_project/tastebuds-frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_GEMINI_API_KEY=AIzaSyAWfellT4nnmmmfHuVOz3jr1KyaVk73Hjc
+        - REACT_APP_GOOGLE_CLIENT_ID=839760166664-17jklsi9a7dg566r43cco7khftmb7dko.apps.googleusercontent.com
+    image: internet_final_project-tastebuds-frontend:latest
+    container_name: tastebuds-frontend
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - tastebuds-backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  uploads:

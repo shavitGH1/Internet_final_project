@@ -2,8 +2,10 @@ import express, { Express } from "express";
 const app = express();
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-const envFile = process.env.NODE_ENV === 'test' ? ".env.test" : ".env.dev";
-dotenv.config({ path: envFile });
+if (process.env.NODE_ENV !== 'production') {
+  const envFile = process.env.NODE_ENV === 'test' ? ".env.test" : ".env.dev";
+  dotenv.config({ path: envFile });
+}
 import cors from "cors";
 import recipeRoutes from "./routes/recipesRoutes"; 
 import commentRoutes from "./routes/commentRoutes";
@@ -49,6 +51,11 @@ const intApp = () => {
 
     app.use((req, res, next) => {
       const startTime = Date.now();
+      console.log(`→ [${req.method}] ${req.originalUrl}`);
+      console.log(`  Headers: content-type=${req.headers['content-type']}, content-length=${req.headers['content-length']}`);
+      if (req.body && Object.keys(req.body).length > 0) {
+        console.log(`  Body keys: ${JSON.stringify(Object.keys(req.body))}`);
+      }
       res.on('finish', () => {
         const duration = Date.now() - startTime;
         console.log(`${new Date().toISOString()} [${req.method}] ${req.originalUrl} - Status: ${res.statusCode} - ${duration}ms`);
