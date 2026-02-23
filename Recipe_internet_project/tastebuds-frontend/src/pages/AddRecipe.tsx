@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { recipesAPI, fileAPI } from '../services/api'; // הוספנו את fileAPI
+import { recipesAPI, fileAPI } from '../services/api'; 
 import './RecipeForm.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { fetchRecipeFromGemini } from '../services/geminiService';
@@ -43,17 +43,14 @@ const AddRecipe: React.FC = () => {
     }
   };
 
-  // --- הפונקציה המעודכנת ששולחת את התמונה לשרת ---
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // מציג תצוגה מקדימה מידית למשתמש
     const localPreviewUrl = URL.createObjectURL(file);
     setImagePreview(localPreviewUrl);
 
     try {
-      // שולח את הקובץ לשרת ומקבל את הלינק
       const response = await fileAPI.uploadImage(file);
       setFormData(prev => ({ ...prev, imageCover: response.url }));
     } catch (err) {
@@ -71,17 +68,11 @@ const AddRecipe: React.FC = () => {
   };
 
   const addArrayField = (field: 'ingredients' | 'steps') => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], '']
-    }));
+    setFormData(prev => ({ ...prev, [field]: [...prev[field], ''] }));
   };
 
   const removeArrayField = (index: number, field: 'ingredients' | 'steps') => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
+    setFormData(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement> | null) => {
@@ -104,7 +95,7 @@ const AddRecipe: React.FC = () => {
         navigate('/recipes');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to add recipe');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to add recipe');
     } finally {
       setLoading(false);
     }
@@ -135,10 +126,7 @@ const AddRecipe: React.FC = () => {
       `;
 
       const rawText: any = await fetchRecipeFromGemini(extractionPrompt);
-      
-      if (typeof rawText !== 'string') {
-        throw new Error('Expected text from AI, but got something else.');
-      }
+      if (typeof rawText !== 'string') throw new Error('Expected text from AI, but got something else.');
 
       const extractSection = (text: string, startMarker: string, endMarker: string) => {
         const startIndex = text.indexOf(startMarker);
@@ -153,41 +141,35 @@ const AddRecipe: React.FC = () => {
       const rawInstructions = extractSection(rawText, '### INSTRUCTIONS ###', '### COOK TIME ###');
       const extractedCookTime = extractSection(rawText, '### COOK TIME ###', '');
 
-      if (!extractedTitle || extractedTitle.includes('[Insert Recipe Name Here]') || extractedTitle.trim() === '') {
-         const titlePrompt = `
-           Based on the following recipe text, what is the exact name of the dish being prepared?
-           Return ONLY the name of the dish, nothing else. Keep it very short and concise.
-           Do not use quotes or punctuation.
-           
-           Recipe:
-           ${rawText.substring(0, 800)} 
-         `;
+      let finalTitle = extractedTitle.replace(/[*"']/g, '').trim();
+
+      if (!finalTitle || finalTitle.includes('[Insert Recipe Name Here]')) {
+         const titlePrompt = `Based on the following recipe text, what is the exact name of the dish being prepared? Return ONLY the name of the dish. \n\n Recipe: ${rawText.substring(0, 800)}`;
          const rawTitle = await fetchRecipeFromGemini(titlePrompt);
-         extractedTitle = (rawTitle || "").replace(/[*"']/g, '').trim();
+         finalTitle = (rawTitle || "Imported Recipe").replace(/[*"']/g, '').trim();
       }
 
-      const ingredientsList = rawIngredients
-        .split('\n')
-        .map(i => i.replace(/^[-*•]\s*/, '').trim())
-        .filter(i => i !== '');
+      // חיתוך הכותרת כדי שלא תעבור את מגבלת 40 התווים של השרת
+      if (finalTitle.length > 40) {
+        finalTitle = finalTitle.substring(0, 37) + '...';
+      }
 
-      const instructionsList = rawInstructions
-        .split('\n')
-        .map(i => i.replace(/^\d+\.\s*/, '').trim())
-        .filter(i => i !== '');
+      const ingredientsList = rawIngredients.split('\n').map(i => i.replace(/^[-*•]\s*/, '').trim()).filter(i => i !== '');
+      const instructionsList = rawInstructions.split('\n').map(i => i.replace(/^\d+\.\s*/, '').trim()).filter(i => i !== '');
 
       if (ingredientsList.length === 0 || instructionsList.length === 0) {
-        throw new Error("We couldn't find a valid recipe at this URL. Please check the link or add it manually.");
+        throw new Error("We couldn't find a valid recipe at this URL. Please try entering it manually.");
       }
 
-      const cookingTimeInt = extractedCookTime ? parseInt(extractedCookTime.replace(/\D/g, '')) : undefined;
+      let cookingTimeInt = extractedCookTime ? parseInt(extractedCookTime.replace(/\D/g, '')) : 30;
+      if (isNaN(cookingTimeInt)) cookingTimeInt = 30; // ברירת מחדל בטוחה
 
       const dataToSend = {
-        title: extractedTitle,
+        title: finalTitle,
         description: `Recipe imported automatically from: ${url}`,
         ingredients: ingredientsList,
         steps: instructionsList,
-        cookingTime: cookingTimeInt || 0, 
+        cookingTime: cookingTimeInt, 
         imageCover: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       };
 
@@ -199,7 +181,15 @@ const AddRecipe: React.FC = () => {
       }
 
     } catch (err: any) {
-      setError(err.message || 'Failed to extract and save recipe from the URL. Please try entering it manually.');
+      console.error("URL Import Error:", err);
+      let errorMsg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to extract recipe.';
+      
+      // טיפול מיוחד לשגיאת מונגו של כותרת כפולה
+      if (errorMsg.includes('E11000') || errorMsg.includes('duplicate')) {
+        errorMsg = "A recipe with this exact title already exists! Please add it manually with a slightly different name.";
+      }
+      
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -230,85 +220,43 @@ const AddRecipe: React.FC = () => {
                   <div className="no-image-placeholder">No Image Available</div>
                 )}
                 
-                <button
-                  type="button"
-                  className="camera-btn"
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Upload new image"
-                >
+                <button type="button" className="camera-btn" onClick={() => fileInputRef.current?.click()} title="Upload new image">
                   📷
                 </button>
                 
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                />
+                <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleImageUpload} />
               </div>
               
               <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '8px', marginBottom: '4px' }}>
                 Or paste an image URL directly:
               </p>
-              <input
-                type="url"
-                id="imageCover"
-                name="imageCover"
-                value={formData.imageCover}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="form-control url-fallback-input"
-                required={!imagePreview}
-              />
+              <input type="url" id="imageCover" name="imageCover" value={formData.imageCover} onChange={handleChange} placeholder="https://..." className="form-control url-fallback-input" required={!imagePreview} />
             </div>
 
             <div className="form-group">
               <label>Ingredients *</label>
               {formData.ingredients.map((ing, index) => (
                 <div key={`ing-${index}`} className="dynamic-input-wrapper">
-                  <input
-                    type="text"
-                    value={ing}
-                    onChange={(e) => handleArrayChange(index, e.target.value, 'ingredients')}
-                    className="form-control"
-                    placeholder={`Ingredient ${index + 1}`}
-                    required={index === 0}
-                  />
+                  <input type="text" value={ing} onChange={(e) => handleArrayChange(index, e.target.value, 'ingredients')} className="form-control" placeholder={`Ingredient ${index + 1}`} required={index === 0} />
                   {formData.ingredients.length > 1 && (
-                    <button type="button" className="remove-btn" onClick={() => removeArrayField(index, 'ingredients')} aria-label="Remove">
-                      &times;
-                    </button>
+                    <button type="button" className="remove-btn" onClick={() => removeArrayField(index, 'ingredients')} aria-label="Remove">&times;</button>
                   )}
                 </div>
               ))}
-              <button type="button" className="add-btn" onClick={() => addArrayField('ingredients')}>
-                + Add Ingredient
-              </button>
+              <button type="button" className="add-btn" onClick={() => addArrayField('ingredients')}>+ Add Ingredient</button>
             </div>
 
             <div className="form-group">
               <label>Cooking Steps *</label>
               {formData.steps.map((step, index) => (
                 <div key={`step-${index}`} className="dynamic-input-wrapper">
-                  <input
-                    type="text"
-                    value={step}
-                    onChange={(e) => handleArrayChange(index, e.target.value, 'steps')}
-                    className="form-control"
-                    placeholder={`Step ${index + 1}`}
-                    required={index === 0}
-                  />
+                  <input type="text" value={step} onChange={(e) => handleArrayChange(index, e.target.value, 'steps')} className="form-control" placeholder={`Step ${index + 1}`} required={index === 0} />
                   {formData.steps.length > 1 && (
-                    <button type="button" className="remove-btn" onClick={() => removeArrayField(index, 'steps')} aria-label="Remove">
-                      &times;
-                    </button>
+                    <button type="button" className="remove-btn" onClick={() => removeArrayField(index, 'steps')} aria-label="Remove">&times;</button>
                   )}
                 </div>
               ))}
-              <button type="button" className="add-btn" onClick={() => addArrayField('steps')}>
-                + Add Step
-              </button>
+              <button type="button" className="add-btn" onClick={() => addArrayField('steps')}>+ Add Step</button>
             </div>
 
             <div className="form-group">
