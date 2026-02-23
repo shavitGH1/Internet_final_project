@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const recipeModel_1 = __importDefault(require("../model/recipeModel"));
 const baseController_1 = __importDefault(require("./baseController"));
-//const recipeController = new baseController(Recipe);
 class RecipeController extends baseController_1.default {
     constructor() {
         super(recipeModel_1.default);
@@ -48,10 +47,20 @@ class RecipeController extends baseController_1.default {
     }
     get(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const filter = req.query;
             try {
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 6;
+                const filter = Object.assign({}, req.query);
+                delete filter.page;
+                delete filter.limit;
+                const skip = (page - 1) * limit;
                 const query = Object.keys(filter).length > 0 ? this.model.find(filter) : this.model.find();
-                const data = yield query.populate('user', '_id email');
+                const data = yield query
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .populate('user', '_id email username profilePic')
+                    .populate('commentCount');
                 res.json(data);
             }
             catch (error) {
@@ -64,7 +73,7 @@ class RecipeController extends baseController_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             const id = req.params.id;
             try {
-                const data = yield this.model.findById(id).populate('user', '_id email');
+                const data = yield this.model.findById(id).populate('user', '_id email username profilePic').populate('commentCount');
                 if (!data) {
                     return res.status(404).json({ error: "Recipe not found" });
                 }
@@ -82,7 +91,7 @@ class RecipeController extends baseController_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            req.body.user = userId; // Remove Hebrew comment
+            req.body.user = userId;
             return _super.post.call(this, req, res);
         });
     }
@@ -143,8 +152,8 @@ class RecipeController extends baseController_1.default {
             if (!userId)
                 return res.status(401).json({ error: 'Unauthorized' });
             try {
-                const transformedRecipe = req.body; // Assume the transformed recipe is sent in the request body
-                transformedRecipe.user = userId; // Attach the user ID to the recipe
+                const transformedRecipe = req.body;
+                transformedRecipe.user = userId;
                 const newRecipe = new recipeModel_1.default(transformedRecipe);
                 yield newRecipe.save();
                 res.status(201).json(newRecipe);

@@ -19,7 +19,7 @@ const userSchema = new mongoose_1.default.Schema({
     },
     profilePic: {
         type: String,
-        default: "./public/avatar.png"
+        default: "/avatar.png"
     },
     refreshToken: {
         type: [String],

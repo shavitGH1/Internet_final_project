@@ -1,6 +1,7 @@
 import express from 'express';
 import recipeController from '../controllers/recipeController'; 
 import authController from '../controllers/authController'; 
+import authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -69,8 +70,7 @@ router.get('/', recipeController.get.bind(recipeController));
  */
 router.get('/:id', recipeController.getById.bind(recipeController));
 
-router.use(authController.protect);
-
+router.use(authMiddleware); 
 /**
  * @swagger
  * /recipes/{id}/favorite:

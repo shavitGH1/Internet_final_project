@@ -41,9 +41,22 @@ const recipeSchema = new mongoose_1.default.Schema({
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'User',
         required: [true, 'Recipe must belong to a User']
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
-recipeSchema.index({ title: 1, difficulty: 1 });
+recipeSchema.virtual('commentCount', {
+    ref: 'Comment',
+    localField: '_id',
+    foreignField: 'recipe',
+    count: true
+});
+recipeSchema.index({ title: 1 });
 const Recipe = mongoose_1.default.model('Recipe', recipeSchema);
 exports.default = Recipe;
 //# sourceMappingURL=recipeModel.js.map

@@ -15,17 +15,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const userModel_1 = __importDefault(require("../model/userModel"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const google_auth_library_1 = require("google-auth-library");
 const sendError = (res, message, code) => {
     const errCode = code || 400;
     res.status(errCode).json({ error: message });
 };
 const generateToken = (userId) => {
     const secret = process.env.JWT_SECRET || "secretkey";
-    const exp = parseInt(process.env.JWT_EXPIRES_IN || "3600"); // 1 hour
-    const refreshexp = parseInt(process.env.JWT_REFRESH_EXPIRES_IN || "86400"); // 24 hours
+    const exp = parseInt(process.env.JWT_EXPIRES_IN || "3600");
+    const refreshexp = parseInt(process.env.JWT_REFRESH_EXPIRES_IN || "86400");
     const token = jsonwebtoken_1.default.sign({ userId: userId }, secret, { expiresIn: exp });
-    const refreshToken = jsonwebtoken_1.default.sign({ userId: userId }, secret, { expiresIn: refreshexp } // 24 hours
-    );
+    const refreshToken = jsonwebtoken_1.default.sign({ userId: userId }, secret, { expiresIn: refreshexp });
     return { token, refreshToken };
 };
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,7 +40,7 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             email,
             password: encryptedPassword,
             username,
-            profilePic: profilePic || "./public/avatar.png"
+            profilePic: profilePic || "/avatar.png"
         });
         const tokens = generateToken(user._id.toString());
         if (!user.refreshToken)
@@ -70,7 +70,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const tokens = generateToken(user._id.toString());
         user.refreshToken.push(tokens.refreshToken);
         yield user.save();
-        res.status(200).json(tokens);
+        res.status(200).json(Object.assign(Object.assign({}, tokens), { email: user.email, username: user.username, userProfilePic: user.profilePic }));
     }
     catch (error) {
         return sendError(res, "Login failed");
@@ -101,6 +101,42 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         return sendError(res, "Invalid refresh token", 401);
     }
 });
+const googleClient = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { credential } = req.body;
+        const ticket = yield googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        if (!payload)
+            return sendError(res, "Invalid Google token", 401);
+        const { email, name, picture } = payload;
+        let user = yield userModel_1.default.findOne({ email });
+        if (!user) {
+            const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+            const salt = yield bcrypt_1.default.genSalt(10);
+            const hashedPassword = yield bcrypt_1.default.hash(randomPassword, salt);
+            user = yield userModel_1.default.create({
+                email,
+                password: hashedPassword,
+                username: name || (email === null || email === void 0 ? void 0 : email.split('@')[0]),
+                profilePic: picture || "/avatar.png"
+            });
+        }
+        const tokens = generateToken(user._id.toString());
+        if (!user.refreshToken)
+            user.refreshToken = [];
+        user.refreshToken.push(tokens.refreshToken);
+        yield user.save();
+        res.status(200).json(Object.assign(Object.assign({}, tokens), { email: user.email, username: user.username, userProfilePic: user.profilePic }));
+    }
+    catch (error) {
+        console.error("Google login error:", error);
+        return sendError(res, "Google login failed", 500);
+    }
+});
 const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -117,19 +153,11 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         return res.status(401).json({ error: "Unauthorized" });
     }
 });
-const restrictTo = (...roles) => {
-    return (req, res, next) => {
-        if (!req.user || !roles.includes(req.user.role)) {
-            return sendError(res, 'You do not have permission to perform this action', 403);
-        }
-        next();
-    };
-};
 exports.default = {
     register,
     login,
     refreshToken,
-    protect,
-    restrictTo
+    googleLogin,
+    protect
 };
 //# sourceMappingURL=authController.js.map

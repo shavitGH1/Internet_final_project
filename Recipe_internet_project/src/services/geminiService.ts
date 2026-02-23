@@ -1,16 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenAI(process.env.REACT_APP_GEMINI_API_KEY || "");
+const genAI = new GoogleGenAI({ 
+  apiKey: process.env.REACT_APP_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "" 
+});
 
 export const fetchRecipeFromGemini = async (prompt: string) => {
   try {
-    const model = genAI.getGenerativeModel({
+    const response = await genAI.models.generateContent({
       model: "gemini-1.5-flash",
+      contents: prompt,
     });
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text(); 
+    return response.text; 
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw error;
