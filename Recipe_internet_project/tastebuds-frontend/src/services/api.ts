@@ -105,5 +105,19 @@ export const commentsAPI = {
     apiClient.delete(`/comments/${commentId}`)
 };
 
+export const fileAPI = {
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    // אקסיוס יודע אוטומטית להגדיר את זה כ-multipart/form-data בגלל ה-FormData
+    const response = await apiClient.post<{url: string}>('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+};
+
 
 export default apiClient;

@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { authAPI, fileAPI } from '../services/api'; // הוספנו את fileAPI
 import { setTokens } from '../utils/auth';
 import './Auth.css';
 
@@ -18,16 +18,22 @@ const Register: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  // --- הפונקציה המעודכנת שמעלה את תמונת הפרופיל לשרת בזמן ההרשמה ---
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImagePreview(base64String);
-        setProfilePic(base64String);
-      };
-      reader.readAsDataURL(file);
+      // תצוגה מקדימה מידית למשתמש
+      const localPreviewUrl = URL.createObjectURL(file);
+      setImagePreview(localPreviewUrl);
+
+      try {
+        // מעלה את התמונה לשרת ומקבל את הלינק
+        const response = await fileAPI.uploadImage(file);
+        setProfilePic(response.url);
+      } catch (err) {
+        console.error("Failed to upload image", err);
+        setError("Failed to upload profile picture to server.");
+      }
     }
   };
 
@@ -43,17 +49,13 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      // שליחת הנתונים לשרת (אם לא נבחרה תמונה, profilePic יהיה ריק והשרת ישתמש בברירת המחדל שלו)
-      const response = await authAPI.register(email, password, username, profilePic);
+      const response = await authAPI.register(email, username, password, profilePic);
+      const { token, refreshToken, userProfilePic } = response.data;
       
-      const { token, refreshToken, userProfilePic, username: returnedUsername } = response.data;
-      
-      // שמירת הנתונים ב-LocalStorage
-      setTokens(token, refreshToken, email, userProfilePic, returnedUsername); 
-      
+      setTokens(token, refreshToken, email, userProfilePic, username);
       navigate('/recipes');
     } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || 'Registration failed.');
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -61,33 +63,30 @@ const Register: React.FC = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-form">
-        <h1>TasteBuds Register</h1>
+      <div className="auth-card">
+        <h2>Register</h2>
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit}>
-          {/* אזור העלאת תמונה בעיגול */}
-          <div className="profile-pic-upload-section">
-            <div className="profile-pic-circle" onClick={() => fileInputRef.current?.click()}>
-              
-              {/* מציג את התמונה שהועלתה, ואם אין - מציג את תמונת הדיפולט מתיקיית public */}
-              <img 
-                src={imagePreview || '/avatar.png'} 
-                alt="Profile Preview" 
-                className="preview-img" 
-              />
-              
-              <div className="camera-overlay">
-                <span className="camera-icon">📷</span>
-              </div>
+          
+          <div className="form-group image-upload-group">
+            <label>Profile Picture:</label>
+            <div className="profile-image-preview-container" onClick={() => fileInputRef.current?.click()}>
+              {imagePreview ? (
+                <img src={imagePreview} alt="Profile Preview" className="profile-preview-img" />
+              ) : (
+                <div className="profile-placeholder">
+                  <i className="bi bi-camera"></i>
+                  <span>Upload</span>
+                </div>
+              )}
             </div>
-            
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleImageChange} 
-              accept="image/*" 
-              hidden 
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              accept="image/*"
+              onChange={handleImageChange}
             />
           </div>
 

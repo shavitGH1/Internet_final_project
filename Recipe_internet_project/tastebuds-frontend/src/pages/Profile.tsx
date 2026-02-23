@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { userAPI } from '../services/api';
+import { userAPI, fileAPI } from '../services/api'; // הוספנו את fileAPI
 import './Profile.css';
 
 const Profile: React.FC = () => {
@@ -12,14 +12,27 @@ const Profile: React.FC = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const fileInputRef = useRef<HTMLInputElement>(null); // רפרנס לאינפוט הנסתר של התמונה
+
   const hasChanges = username !== initialUsername || profilePic !== initialPic;
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // --- הפונקציה המעודכנת ששולחת את התמונה לשרת שלנו ---
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProfilePic(reader.result as string);
-      reader.readAsDataURL(file);
+      // 1. קודם כל מציגים תצוגה מקדימה מידית למשתמש
+      const localPreviewUrl = URL.createObjectURL(file);
+      setProfilePic(localPreviewUrl);
+
+      // 2. מעלים את התמונה לשרת ומקבלים את הלינק
+      try {
+        const response = await fileAPI.uploadImage(file);
+        // מעדכנים את הסטייט עם הלינק האמיתי שחזר מהשרת
+        setProfilePic(response.url);
+      } catch (err) {
+        console.error("Failed to upload image", err);
+        alert("Failed to upload image to server.");
+      }
     }
   };
 
@@ -32,7 +45,8 @@ const Profile: React.FC = () => {
       setIsEditingName(false);
       window.location.reload(); 
     } catch (err) {
-      alert("Failed to update profile");
+      alert("Failed to save profile. Please try again.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -42,25 +56,31 @@ const Profile: React.FC = () => {
     <div className="profile-page-wrapper">
       <div className="profile-card">
         <h1>My Profile</h1>
-
+        
         <div className="profile-image-container">
           <div className="avatar-circle">
-            {/* הוספת התיקון כאן: onError מחליף תמונה שבורה בתמונת ברירת המחדל */}
             <img 
               src={profilePic || '/avatar.png'} 
               alt="Profile" 
-              className="avatar-img" 
+              className="avatar-img"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.onerror = null; // מונע לופ אינסופי אם גם התמונה הדיפולטיבית חסרה
+                target.onerror = null;
                 target.src = '/avatar.png';
               }}
             />
-            <label htmlFor="file-upload" className="camera-overlay">
+            {/* כפתור המצלמה להחלפת תמונה */}
+            <div className="camera-overlay" onClick={() => fileInputRef.current?.click()}>
               <i className="bi bi-camera-fill"></i>
-            </label>
-            <input id="file-upload" type="file" onChange={handleImageChange} hidden accept="image/*" />
+            </div>
           </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            style={{ display: 'none' }} 
+            accept="image/*"
+            onChange={handleImageChange}
+          />
         </div>
 
         <div className="profile-details">

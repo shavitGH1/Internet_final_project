@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { recipesAPI } from '../services/api';
+import { recipesAPI, fileAPI } from '../services/api'; // הוספנו את fileAPI
 import './RecipeForm.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { fetchRecipeFromGemini } from '../services/geminiService';
@@ -29,7 +29,6 @@ const AddRecipe: React.FC = () => {
   const location = useLocation();
   const [url, setUrl] = useState<string>('');
 
-  // סטייט ורפרנס חדשים עבור העלאת התמונה
   const [imagePreview, setImagePreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,28 +38,28 @@ const AddRecipe: React.FC = () => {
       ...prev,
       [name]: value,
     }));
-    // עדכון תצוגה מקדימה במקרה של הדבקת URL
     if (name === 'imageCover') {
       setImagePreview(value);
     }
   };
 
-  // הפונקציה לטיפול בהעלאת התמונה מהמחשב
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  // --- הפונקציה המעודכנת ששולחת את התמונה לשרת ---
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // תצוגה מקדימה מידית
+    // מציג תצוגה מקדימה מידית למשתמש
     const localPreviewUrl = URL.createObjectURL(file);
     setImagePreview(localPreviewUrl);
 
-    // המרה לטקסט (Base64) לשמירה בשרת
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setFormData(prev => ({ ...prev, imageCover: base64String }));
-    };
+    try {
+      // שולח את הקובץ לשרת ומקבל את הלינק
+      const response = await fileAPI.uploadImage(file);
+      setFormData(prev => ({ ...prev, imageCover: response.url }));
+    } catch (err) {
+      console.error("Failed to upload image", err);
+      setError("Failed to upload image to server.");
+    }
   };
 
   const handleArrayChange = (index: number, value: string, field: 'ingredients' | 'steps') => {
@@ -221,7 +220,6 @@ const AddRecipe: React.FC = () => {
               <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} required className="form-control" maxLength={40} />
             </div>
             
-            {/* ----- אזור התמונה החדש בדיוק כמו בעריכה ----- */}
             <div className="form-group image-upload-group">
               <label>Recipe Image *</label>
               
@@ -261,10 +259,9 @@ const AddRecipe: React.FC = () => {
                 onChange={handleChange}
                 placeholder="https://..."
                 className="form-control url-fallback-input"
-                required={!imagePreview} /* אם העלינו תמונה, לא חייב למלא פה טקסט */
+                required={!imagePreview}
               />
             </div>
-            {/* ------------------------------------------- */}
 
             <div className="form-group">
               <label>Ingredients *</label>
