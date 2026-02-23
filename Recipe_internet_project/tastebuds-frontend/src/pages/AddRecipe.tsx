@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { recipesAPI } from '../services/api';
 import './RecipeForm.css';
@@ -29,12 +29,38 @@ const AddRecipe: React.FC = () => {
   const location = useLocation();
   const [url, setUrl] = useState<string>('');
 
+  // סטייט ורפרנס חדשים עבור העלאת התמונה
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    // עדכון תצוגה מקדימה במקרה של הדבקת URL
+    if (name === 'imageCover') {
+      setImagePreview(value);
+    }
+  };
+
+  // הפונקציה לטיפול בהעלאת התמונה מהמחשב
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // תצוגה מקדימה מידית
+    const localPreviewUrl = URL.createObjectURL(file);
+    setImagePreview(localPreviewUrl);
+
+    // המרה לטקסט (Base64) לשמירה בשרת
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setFormData(prev => ({ ...prev, imageCover: base64String }));
+    };
   };
 
   const handleArrayChange = (index: number, value: string, field: 'ingredients' | 'steps') => {
@@ -72,8 +98,12 @@ const AddRecipe: React.FC = () => {
         cookingTime: formData.cookingTime ? parseInt(formData.cookingTime) : undefined,
         imageCover: formData.imageCover,
       };
-      await recipesAPI.createRecipe(dataToSend);
-      navigate('/recipes');
+      const response = await recipesAPI.createRecipe(dataToSend);
+      if (response.data && response.data._id) {
+        navigate(`/recipes/${response.data._id}`);
+      } else {
+        navigate('/recipes');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to add recipe');
     } finally {
@@ -110,8 +140,6 @@ const AddRecipe: React.FC = () => {
       if (typeof rawText !== 'string') {
         throw new Error('Expected text from AI, but got something else.');
       }
-
-      console.log("Parsing text from AI...");
 
       const extractSection = (text: string, startMarker: string, endMarker: string) => {
         const startIndex = text.indexOf(startMarker);
@@ -164,17 +192,14 @@ const AddRecipe: React.FC = () => {
         imageCover: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       };
 
-      // הקסם שקורה פה: אנחנו שומרים את התגובה של השרת, שולפים ממנה את ה-ID החדש ומנווטים אליו!
       const response = await recipesAPI.createRecipe(dataToSend);
       if (response.data && response.data._id) {
         navigate(`/recipes/${response.data._id}`);
       } else {
-        // במידה והשרת משום מה לא החזיר ID, נחזור לדף הראשי כגיבוי
         navigate('/recipes');
       }
 
     } catch (err: any) {
-      console.error("Error in handleUrlSubmit:", err);
       setError(err.message || 'Failed to extract and save recipe from the URL. Please try entering it manually.');
     } finally {
       setLoading(false);
@@ -196,10 +221,50 @@ const AddRecipe: React.FC = () => {
               <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} required className="form-control" maxLength={40} />
             </div>
             
-            <div className="form-group">
-              <label htmlFor="imageCover">Image URL *</label>
-              <input type="url" id="imageCover" name="imageCover" value={formData.imageCover} onChange={handleChange} required className="form-control" />
+            {/* ----- אזור התמונה החדש בדיוק כמו בעריכה ----- */}
+            <div className="form-group image-upload-group">
+              <label>Recipe Image *</label>
+              
+              <div className="image-preview-container">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Recipe Preview" className="recipe-image-preview" />
+                ) : (
+                  <div className="no-image-placeholder">No Image Available</div>
+                )}
+                
+                <button
+                  type="button"
+                  className="camera-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Upload new image"
+                >
+                  📷
+                </button>
+                
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+              </div>
+              
+              <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '8px', marginBottom: '4px' }}>
+                Or paste an image URL directly:
+              </p>
+              <input
+                type="url"
+                id="imageCover"
+                name="imageCover"
+                value={formData.imageCover}
+                onChange={handleChange}
+                placeholder="https://..."
+                className="form-control url-fallback-input"
+                required={!imagePreview} /* אם העלינו תמונה, לא חייב למלא פה טקסט */
+              />
             </div>
+            {/* ------------------------------------------- */}
 
             <div className="form-group">
               <label>Ingredients *</label>
@@ -262,7 +327,6 @@ const AddRecipe: React.FC = () => {
           </form>
         )}
 
-        {/* האזור של חיפוש ה-URL שכולל את האנימציה! */}
         {isUrl && (
           loading ? (
             <div className="ai-loader-container">
