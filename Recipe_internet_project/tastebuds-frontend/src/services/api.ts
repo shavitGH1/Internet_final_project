@@ -1,8 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
-// Types
 export interface Recipe {
   _id?: string;
   title: string;
@@ -13,13 +12,15 @@ export interface Recipe {
   difficulty?: 'easy' | 'medium' | 'difficult';
   description?: string;
   user?: string | { _id: string; email: string };
+  favorites?: string[] | { _id: string }[];
+  commentCount?: number;
   createdAt?: Date;
 }
 
 export interface Comment {
   _id?: string;
-  text: string;
-  user?: string;
+  comment: string;
+  user?: string | { _id?: string; email?: string };
   recipe?: string;
   createdAt?: Date;
 }
@@ -27,10 +28,12 @@ export interface Comment {
 export interface AuthResponse {
   token: string;
   refreshToken: string;
+  userProfilePic: string; 
+  username: string;
+  email?: string;
   user?: any;
 }
 
-// Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -38,7 +41,6 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Add token to requests
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -47,34 +49,40 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 responses (unauthorized - expired token, invalid token, etc.)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear tokens
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userEmail');
-      
-      // Redirect to login
+      localStorage.removeItem('profilePic');
+      localStorage.removeItem('userUsername');
       window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
 
-// Auth API
 export const authAPI = {
-  register: (email: string, password: string) =>
-    apiClient.post<AuthResponse>('/auth/register', { email, password }),
+  register: (email: string, password: string, profilePic?: string, username?: string) =>
+    apiClient.post<AuthResponse>('/auth/register', { email, password, profilePic, username }),
+  
   login: (email: string, password: string) =>
     apiClient.post<AuthResponse>('/auth/login', { email, password }),
+  
   refreshToken: (refreshToken: string) =>
     apiClient.post<AuthResponse>('/auth/refresh-token', { refreshToken }),
+
+  googleLogin: (credential: string) =>
+    apiClient.post<AuthResponse>('/auth/google', { credential }),
 };
 
-// Recipes API
+export const userAPI = {
+  updateProfile: (profilePic: string, username: string) => 
+    apiClient.put('/user/update-profile', { profilePic, username }),
+};
+
 export const recipesAPI = {
   getAllRecipes: () => apiClient.get<Recipe[]>('/recipes'),
   getRecipeById: (id: string) => apiClient.get<Recipe>(`/recipes/${id}`),
@@ -82,13 +90,20 @@ export const recipesAPI = {
   updateRecipe: (id: string, recipeData: Partial<Recipe>) => 
     apiClient.patch<Recipe>(`/recipes/${id}`, recipeData),
   deleteRecipe: (id: string) => apiClient.delete(`/recipes/${id}`),
+  toggleFavorite: (id: string) => apiClient.post(`/recipes/${id}/favorite`),
+  addRecipeFromUrl: (data: { url: string }) => apiClient.post<Recipe>('/recipes/url', data),
 };
 
-// Comments API
 export const commentsAPI = {
-  getComments: (recipeId: string) => apiClient.get<Comment[]>(`/recipes/${recipeId}/comments`),
-  addComment: (recipeId: string, commentData: Partial<Comment>) =>
-    apiClient.post<Comment>(`/recipes/${recipeId}/comments`, commentData),
+  getByRecipe: (recipeId: string) => 
+    apiClient.get(`/comments/recipe/${recipeId}`),
+    
+  addComment: (commentData: { recipe: string; comment: string }) => 
+    apiClient.post('/comments', commentData),
+    
+  deleteComment: (commentId: string) => 
+    apiClient.delete(`/comments/${commentId}`)
 };
+
 
 export default apiClient;

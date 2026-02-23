@@ -2,6 +2,7 @@ import React, { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { setTokens } from '../utils/auth';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './Auth.css';
 
 const Login: React.FC = () => {
@@ -18,8 +19,8 @@ const Login: React.FC = () => {
 
     try {
       const response = await authAPI.login(email, password);
-      const { token, refreshToken } = response.data;
-      setTokens(token, refreshToken, email);
+      const { token, refreshToken, username, userProfilePic } = response.data;
+      setTokens(token, refreshToken, email, userProfilePic, username);
       navigate('/recipes');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
@@ -28,11 +29,24 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await authAPI.googleLogin(credentialResponse.credential);
+      const { token, refreshToken, email: resEmail, username, userProfilePic } = response.data;
+      setTokens(token, refreshToken, resEmail || '', userProfilePic, username);
+      navigate('/recipes');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Google login failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
-      {/* Background decorative elements */}
       <div className="auth-background">
-        {/* Testimonials floating around */}
         <div className="floating-element testimonial testimonial-1">
           <div className="testimonial-card">
             <div className="stars">⭐⭐⭐⭐⭐</div>
@@ -97,7 +111,6 @@ const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* Food item decorations */}
         <div className="floating-element food-item food-1">
           <div className="food-card">
             <span className="food-emoji">🍝</span>
@@ -183,11 +196,12 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* Main login form in the center */}
       <div className="auth-form">
         <h1>🍽️ TasteBuds Login</h1>
         <p className="welcome-text">Welcome back to your culinary journey!</p>
+        
         {error && <div className="error-message">{error}</div>}
+        
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email:</label>
@@ -215,7 +229,25 @@ const Login: React.FC = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <p className="auth-link">
+
+        <div style={{ margin: '20px 0', textAlign: 'center', color: '#666' }}>
+          <hr style={{ border: 'none', borderTop: '1px solid #ddd', marginBottom: '15px' }} />
+          Or continue with
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
+          {/* הוספנו את העטיפה של ה-Provider כאן מסביב לכפתור */}
+          <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ""}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Google login failed.')}
+              theme="outline"
+              size="large"
+            />
+          </GoogleOAuthProvider>
+        </div>
+
+        <p className="auth-link" style={{ textAlign: 'center' }}>
           Don't have an account? <Link to="/register">Register here</Link>
         </p>
       </div>

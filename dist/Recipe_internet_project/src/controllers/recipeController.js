@@ -19,6 +19,33 @@ class RecipeController extends baseController_1.default {
     constructor() {
         super(recipeModel_1.default);
     }
+    toggleFavorite(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            if (!userId)
+                return res.status(401).json({ error: 'Unauthorized' });
+            try {
+                const recipe = yield recipeModel_1.default.findById(req.params.id);
+                if (!recipe)
+                    return res.status(404).json({ error: 'Recipe not found' });
+                const idx = recipe.favorites ? recipe.favorites.findIndex((f) => String(f) === String(userId)) : -1;
+                if (idx === -1) {
+                    recipe.favorites = recipe.favorites || [];
+                    recipe.favorites.push(userId);
+                }
+                else {
+                    recipe.favorites = recipe.favorites.filter((f) => String(f) !== String(userId));
+                }
+                yield recipe.save();
+                return res.status(200).json({ favorites: recipe.favorites });
+            }
+            catch (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Failed to toggle favorite' });
+            }
+        });
+    }
     get(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const filter = req.query;
@@ -55,7 +82,7 @@ class RecipeController extends baseController_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            req.body.user = userId; // שינינו מ-createdBy ל-user בהתאם למודל החדש
+            req.body.user = userId; // Remove Hebrew comment
             return _super.post.call(this, req, res);
         });
     }
@@ -65,17 +92,23 @@ class RecipeController extends baseController_1.default {
         });
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            const authReq = req;
+            const userId = (_a = authReq.user) === null || _a === void 0 ? void 0 : _a._id;
             const recipe = yield recipeModel_1.default.findById(req.params.id);
             if (!recipe) {
                 res.status(404).json({ error: "Recipe not found" });
                 return;
             }
-            if (recipe.user.toString() !== userId.toString()) {
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+            if (!recipe.user || String(recipe.user) !== String(userId)) {
                 res.status(403).json({ error: "Forbidden" });
                 return;
             }
-            return _super.put.call(this, req, res);
+            yield _super.put.call(this, req, res);
+            return;
         });
     }
     del(req, res) {
@@ -84,17 +117,42 @@ class RecipeController extends baseController_1.default {
         });
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            const authReq = req;
+            const userId = (_a = authReq.user) === null || _a === void 0 ? void 0 : _a._id;
             const recipe = yield recipeModel_1.default.findById(req.params.id);
             if (!recipe) {
                 res.status(404).json({ error: "Recipe not found" });
                 return;
             }
-            if (!userId || recipe.user.toString() !== userId.toString()) {
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+            if (!recipe.user || String(recipe.user) !== String(userId)) {
                 res.status(403).json({ error: "Forbidden - You can only delete your own recipes" });
                 return;
             }
-            return _super.del.call(this, req, res);
+            yield _super.del.call(this, req, res);
+            return;
+        });
+    }
+    addRecipeFromGemini(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+            if (!userId)
+                return res.status(401).json({ error: 'Unauthorized' });
+            try {
+                const transformedRecipe = req.body; // Assume the transformed recipe is sent in the request body
+                transformedRecipe.user = userId; // Attach the user ID to the recipe
+                const newRecipe = new recipeModel_1.default(transformedRecipe);
+                yield newRecipe.save();
+                res.status(201).json(newRecipe);
+            }
+            catch (error) {
+                console.error('Error saving recipe:', error);
+                res.status(500).json({ error: 'Failed to save recipe to the database.' });
+            }
         });
     }
 }

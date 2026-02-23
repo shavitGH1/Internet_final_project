@@ -1,3 +1,6 @@
+/* =========================================
+   1. בסיס ה-Navbar והקונטיינר
+========================================= */
 .navbar {
   background: linear-gradient(135deg, #ff7043 0%, #ff4081 50%, #ff6b9d 100%);
   padding: 15px 0;
@@ -7,19 +10,28 @@
   z-index: 1000;
   border-bottom: 3px solid rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(10px);
+  min-height: 70px; 
 }
 
 .nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  width: 100%;
+  padding: 0 40px; 
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: space-between; /* דוחף את הלוגו לשמאל ואת הפרופיל לימין */
+  position: relative; /* חובה כדי שהמרכוז האבסולוטי של האמצע יעבוד */
+}
+
+/* =========================================
+   2. צד שמאל (לוגו) וצד ימין (פרופיל)
+========================================= */
+.nav-left {
+  display: flex;
   align-items: center;
 }
 
 .nav-logo {
-  color: white;
+  color: white !important;
   text-decoration: none;
   font-size: 24px;
   font-weight: bold;
@@ -33,14 +45,31 @@
   transform: scale(1.05);
 }
 
-.nav-menu {
+.nav-right {
   display: flex;
-  gap: 30px;
   align-items: center;
+  gap: 15px;
 }
 
-.nav-link {
-  color: white;
+/* =========================================
+   3. אמצע מוחלט (קישורים) + ביטול הטקסט השחור
+========================================= */
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%); /* ממקם אותם בדיוק במרכז המתמטי של המסך */
+}
+
+/* הפתרון לטקסט השחור בלחיצה */
+.nav-link,
+.nav-link:visited,
+.nav-link:focus,
+.nav-link:active,
+.nav-link.active {
+  color: white !important;
   text-decoration: none;
   font-weight: 600;
   font-size: 16px;
@@ -48,59 +77,173 @@
   padding: 8px 15px;
   border-radius: 5px;
   display: inline-block;
+  cursor: pointer;
 }
 
 .nav-link:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
+  color: white !important;
 }
 
-.nav-link.active {
-  background: rgba(255, 255, 255, 0.35);
-  border-bottom: 3px solid white;
-  font-weight: 700;
+/* =========================================
+   4. פרופיל משתמש
+========================================= */
+.nav-profile-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 5px 15px;
+  border-radius: 25px;
+  transition: background 0.3s;
+}
+
+.nav-profile-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  margin-right: 10px;
 }
 
 .nav-greeting {
   color: white;
   font-weight: 600;
-  font-size: 16px;
-  padding: 8px 15px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.15);
-  display: inline-block;
+  font-size: 15px;
 }
 
+/* =========================================
+   5. כפתורי פעולה
+========================================= */
 .logout-btn {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
   border: 2px solid white;
+  color: white;
+  border-radius: 25px;
+  font-weight: bold;
+  padding: 8px 20px;
   cursor: pointer;
-  font-family: inherit;
+  transition: all 0.3s;
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.4);
 }
 
+.login-btn {
+  background-color: white !important;
+  color: #ff4081 !important;
+  border-radius: 25px;
+  padding: 8px 25px;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.login-btn:hover {
+  background-color: #f8f9fa !important;
+  color: #ff6b9d !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.register-btn {
+  background: transparent !important;
+  border: 2px solid white;
+  color: white !important;
+  border-radius: 25px;
+  padding: 6px 20px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.register-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* =========================================
+   6. תפריט מתכונים (Dropdown)
+========================================= */
+.nav-item.dropdown {
+  position: relative;
+}
+
+.dropdown-label {
+  cursor: pointer;
+}
+
+.nav-item.dropdown .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 12rem;
+  padding: 0.5rem 0;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border: none;
+  overflow: hidden;
+}
+
+.nav-item.dropdown:hover .dropdown-menu, 
+.dropdown-menu.show {
+  display: block;
+  animation: fadeIn 0.2s ease;
+}
+
+.dropdown-item {
+  color: #444;
+  padding: 10px 20px;
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #fff0f3;
+  color: #ff4081;
+  padding-left: 25px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   7. רספונסיביות לטלפונים
+========================================= */
 @media (max-width: 768px) {
   .nav-container {
     flex-direction: column;
+    padding: 15px;
     gap: 15px;
   }
+  
+  .nav-center {
+    position: static; /* מבטל את המרכוז האבסולוטי בטלפון */
+    transform: none;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
-  .nav-menu {
-    width: 100%;
+  .nav-right {
     justify-content: center;
     flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .nav-logo {
-    font-size: 20px;
-  }
-
-  .nav-link {
-    font-size: 14px;
-    padding: 6px 12px;
   }
 }

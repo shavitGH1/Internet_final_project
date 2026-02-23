@@ -3,18 +3,37 @@ import { Request, Response } from "express";
 import baseController from "./baseController";
 import { AuthRequest } from "../middleware/authMiddleware";
 
-//const recipeController = new baseController(Recipe);
-
 class RecipeController extends baseController {
     constructor() {
         super(Recipe);
+    }
+
+    async toggleFavorite(req: AuthRequest, res: Response) {
+        const userId = (req as any).user?._id;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            const recipe = await Recipe.findById(req.params.id);
+            if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
+            const idx = recipe.favorites ? recipe.favorites.findIndex((f: any) => String(f) === String(userId)) : -1;
+            if (idx === -1) {
+                recipe.favorites = recipe.favorites || [];
+                recipe.favorites.push(userId);
+            } else {
+                recipe.favorites = recipe.favorites.filter((f: any) => String(f) !== String(userId));
+            }
+            await recipe.save();
+            return res.status(200).json({ favorites: recipe.favorites });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to toggle favorite' });
+        }
     }
 
     async get(req: Request, res: Response) {
         const filter = req.query;
         try {
             const query = Object.keys(filter).length > 0 ? this.model.find(filter) : this.model.find();
-            const data = await query.populate('user', '_id email');
+            const data = await query.populate('user', '_id email username profilePic').populate('commentCount');
             res.json(data);
         } catch (error) {
             console.error('Error fetching recipes:', error);
@@ -25,7 +44,7 @@ class RecipeController extends baseController {
     async getById(req: Request, res: Response) {
         const id = req.params.id;
         try {
-            const data = await this.model.findById(id).populate('user', '_id email');
+            const data = await this.model.findById(id).populate('user', '_id email username profilePic').populate('commentCount');
             if (!data) {
                 return res.status(404).json({ error: "Recipe not found" });
             }
@@ -37,37 +56,66 @@ class RecipeController extends baseController {
 
     async post(req: AuthRequest, res: Response) {
         const userId = (req as any).user?._id;
-        req.body.user = userId; // שינינו מ-createdBy ל-user בהתאם למודל החדש
+        req.body.user = userId; 
         return super.post(req, res);
     }
 
-    async put(req: AuthRequest, res: Response) {
-        const userId = (req as any).user?._id;
+    async put(req: Request, res: Response) {
+        const authReq = req as AuthRequest;
+        const userId = (authReq as any).user?._id;
         const recipe = await Recipe.findById(req.params.id);
         if (!recipe) {
             res.status(404).json({ error: "Recipe not found" });
             return;
         }
-        if (recipe.user.toString() !== userId.toString()) {
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        if (!recipe.user || String(recipe.user) !== String(userId)) {
             res.status(403).json({ error: "Forbidden" });
             return;
         }
-        return super.put(req, res);
+        await super.put(req, res);
+        return;
     }
 
-    async del(req: AuthRequest, res: Response) {
-        const userId = (req as any).user?._id;
+    async del(req: Request, res: Response) {
+        const authReq = req as AuthRequest;
+        const userId = (authReq as any).user?._id;
         const recipe = await Recipe.findById(req.params.id);
         if (!recipe) {
             res.status(404).json({ error: "Recipe not found" });
             return;
         }
-        
-        if (!userId || recipe.user.toString() !== userId.toString()) {
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        if (!recipe.user || String(recipe.user) !== String(userId)) {
             res.status(403).json({ error: "Forbidden - You can only delete your own recipes" });
             return;
         }
-        return super.del(req, res);
+        await super.del(req, res);
+        return;
+    }
+
+    async addRecipeFromGemini(req: AuthRequest, res: Response) {
+        const userId = (req as any).user?._id;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const transformedRecipe = req.body; 
+            transformedRecipe.user = userId; 
+
+            const newRecipe = new Recipe(transformedRecipe);
+            await newRecipe.save();
+
+            res.status(201).json(newRecipe);
+        } catch (error) {
+            console.error('Error saving recipe:', error);
+            res.status(500).json({ error: 'Failed to save recipe to the database.' });
+        }
     }
 }
 

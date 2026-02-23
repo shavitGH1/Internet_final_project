@@ -8,6 +8,10 @@ const MyRecipes: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  
+  // סטייט לחיפוש במתכונים האישיים
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
   const currentUserId = getCurrentUserId();
 
   useEffect(() => {
@@ -18,9 +22,8 @@ const MyRecipes: React.FC = () => {
     try {
       setLoading(true);
       const response = await recipesAPI.getAllRecipes();
-      // Filter to show only current user's recipes
       const myRecipes = response.data.filter(recipe => 
-        recipe.user && typeof recipe.user === 'object' && recipe.user._id === currentUserId
+        recipe.user && typeof recipe.user === 'object' && (recipe.user as any)._id === currentUserId
       );
       setRecipes(myRecipes);
       setError('');
@@ -32,35 +35,24 @@ const MyRecipes: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this recipe?')) {
-      try {
-        await recipesAPI.deleteRecipe(id);
-        setRecipes(recipes.filter(recipe => recipe._id !== id));
-        setError('');
-      } catch (err: any) {
-        let errorMessage = 'Failed to delete recipe.';
-        
-        if (err.response?.status === 403) {
-          errorMessage = 'You do not have permission to delete this recipe.';
-        } else if (err.response?.status === 404) {
-          errorMessage = 'Recipe not found.';
-        } else if (err.response?.status === 401) {
-          errorMessage = 'You must be logged in to delete recipes.';
-        } else if (err.response?.data?.error) {
-          errorMessage = err.response.data.error;
-        } else if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        setError(errorMessage);
-        alert(errorMessage);
-        console.error('Delete error:', err);
-      }
+  const handleLike = async (e: React.MouseEvent, recipeId: string) => {
+    e.preventDefault();
+    try {
+      const response = await recipesAPI.toggleFavorite(recipeId);
+      setRecipes(prevRecipes => 
+        prevRecipes.map(r => 
+          r._id === recipeId ? { ...r, favorites: response.data.favorites } : r
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle favorite", err);
     }
   };
+
+  // סינון המתכונים שלי לפי שורת החיפוש
+  const filteredRecipes = recipes.filter(recipe => 
+    recipe.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return <div className="loading">Loading your recipes...</div>;
@@ -70,61 +62,95 @@ const MyRecipes: React.FC = () => {
     <div className="recipes-container">
       <div className="recipes-header">
         <h1>My Recipes</h1>
-        <Link to="/add-recipe" className="add-recipe-btn">
-          + Add New Recipe
-        </Link>
       </div>
+
+      {/* --- אזור החיפוש החדש --- */}
+      {recipes.length > 0 && (
+        <div className="recipes-controls" style={{ justifyContent: 'center' }}>
+          <div className="search-wrapper" style={{ maxWidth: '600px', width: '100%' }}>
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="🔍 Search my recipes..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
 
       {error && <div className="error-message">{error}</div>}
 
       {recipes.length === 0 ? (
         <div className="no-recipes">
           <p>You haven't created any recipes yet. Start by adding your first recipe!</p>
-          <Link to="/add-recipe" className="add-recipe-btn">
-            Add Recipe
-          </Link>
+        </div>
+      ) : filteredRecipes.length === 0 ? (
+        <div className="no-recipes">
+          <p>No recipes match your search. 🤷‍♂️</p>
         </div>
       ) : (
         <div className="recipes-grid">
-          {recipes.map((recipe) => (
-            <div key={recipe._id} className="recipe-card">
-              {recipe.imageCover && (
-                <div className="recipe-thumbnail">
-                  <img src={recipe.imageCover} alt={recipe.title} />
-                </div>
-              )}
-              <div className="recipe-content">
-                <h2>{recipe.title}</h2>
-                {recipe.user && typeof recipe.user === 'object' && (
-                  <p className="recipe-author">By: {recipe.user.email}</p>
-                )}
-                {recipe.description && <p className="recipe-description">{recipe.description}</p>}
-                
-                <div className="recipe-info">
-                  <p><strong>Ingredients:</strong> {recipe.ingredients.join(', ')}</p>
-                  <p><strong>Steps:</strong> {recipe.steps.join(', ')}</p>
-                  {recipe.cookingTime && (
-                    <p><strong>Cook Time:</strong> {recipe.cookingTime} minutes</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="recipe-actions">
-                <Link to={`/recipes/${recipe._id}`} className="view-btn">
-                  View Details
-                </Link>
-                <Link to={`/edit-recipe/${recipe._id}`} className="edit-btn">
-                  Edit
-                </Link>
-                <button
-                  onClick={() => recipe._id && handleDelete(recipe._id)}
-                  className="delete-btn"
+          {filteredRecipes.map((recipe) => {
+            const favoritesList = (recipe.favorites || []) as any[];
+            const isLiked = favoritesList.includes(currentUserId);
+
+            return (
+              <div key={recipe._id} className="recipe-card" style={{ position: 'relative' }}>
+                <div 
+                  className="like-icon-container"
+                  onClick={(e) => handleLike(e, recipe._id!)}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    zIndex: 2,
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '50%',
+                    width: '35px',
+                    height: '35px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
                 >
-                  Delete
-                </button>
+                  <i 
+                    className={`bi ${isLiked ? 'bi-heart-fill' : 'bi-heart'}`} 
+                    style={{ color: isLiked ? '#ff4d4d' : '#666', fontSize: '1.2rem' }}
+                  ></i>
+                </div>
+
+                <Link to={`/recipes/${recipe._id}`} className="recipe-card-link">
+                  {recipe.imageCover ? (
+                    <div className="recipe-thumbnail">
+                      <img src={recipe.imageCover} alt={recipe.title} />
+                    </div>
+                  ) : (
+                    <div className="recipe-thumbnail placeholder">
+                      <span>No image</span>
+                    </div>
+                  )}
+
+                  <div className="recipe-content">
+                    <h2 className="recipe-title">{recipe.title}</h2>
+                    <p className="recipe-author">
+                      {recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username : 'Me'}
+                    </p>
+                    
+                    <div className="recipe-card-stats">
+                      <span className="stat-item">
+                        ❤️ {recipe.favorites?.length || 0}
+                      </span>
+                      <span className="stat-item">
+                        💬 {recipe.commentCount || 0}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

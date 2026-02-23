@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRecipe extends Document {
+    _id: string; 
     title: string;
     description: string;
     ingredients: string[];
@@ -8,7 +9,9 @@ export interface IRecipe extends Document {
     cookingTime: number;
     imageCover: string;
     createdAt: Date;
-    user: mongoose.Schema.Types.ObjectId;
+    favorites: mongoose.Types.ObjectId[]; 
+    user: mongoose.Types.ObjectId;
+    commentCount?: number; // הוספנו את השדה החדש לממשק
 }
 
 const recipeSchema: Schema = new mongoose.Schema({
@@ -39,14 +42,33 @@ const recipeSchema: Schema = new mongoose.Schema({
         type: String,
         required: [true, 'A recipe must have a cover image']
     },
+    favorites: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+        default: []
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: [true, 'Recipe must belong to a User']
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now 
     }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
-recipeSchema.index({ title: 1, difficulty: 1 });
+recipeSchema.virtual('commentCount', {
+    ref: 'Comment',         
+    localField: '_id',       
+    foreignField: 'recipe',  
+    count: true              
+});
+
+recipeSchema.index({ title: 1 });
 
 const Recipe = mongoose.model<IRecipe>('Recipe', recipeSchema);
 

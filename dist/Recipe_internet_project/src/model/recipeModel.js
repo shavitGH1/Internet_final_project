@@ -32,6 +32,11 @@ const recipeSchema = new mongoose_1.default.Schema({
         type: String,
         required: [true, 'A recipe must have a cover image']
     },
+    favorites: {
+        type: [mongoose_1.default.Schema.Types.ObjectId],
+        ref: 'User',
+        default: []
+    },
     user: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'User',
