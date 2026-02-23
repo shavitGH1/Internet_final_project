@@ -14,99 +14,70 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const supertest_1 = __importDefault(require("supertest"));
 const index_1 = __importDefault(require("../index"));
-const commentModel_1 = __importDefault(require("../model/commentModel"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const userModel_1 = __importDefault(require("../model/userModel"));
 const recipeModel_1 = __importDefault(require("../model/recipeModel"));
-const testUtils_1 = require("./testUtils");
+const commentModel_1 = __importDefault(require("../model/commentModel"));
 let app;
+let token;
+let recipeId;
+let commentId;
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     app = yield (0, index_1.default)();
-    yield commentModel_1.default.deleteMany({});
-    yield recipeModel_1.default.deleteMany({});
-    yield (0, testUtils_1.registerTestUser)(app);
-    // create a recipe to comment on
+    yield userModel_1.default.deleteMany();
+    yield recipeModel_1.default.deleteMany();
+    yield commentModel_1.default.deleteMany();
+    const userRes = yield (0, supertest_1.default)(app).post("/auth/register").send({
+        email: "commenter@test.com", password: "pass", username: "Commenter"
+    });
+    token = userRes.body.token;
     const recipeRes = yield (0, supertest_1.default)(app)
         .post("/recipes")
-        .set("Authorization", "Bearer " + testUtils_1.userData.token)
-        .send(testUtils_1.recipeData[0]);
-    // attach recipe id to all comment fixtures
-    testUtils_1.commentsData.forEach((comment) => {
-        comment.recipe = recipeRes.body._id;
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+        title: "Cake", ingredients: ["Flour"], steps: ["Bake"], cookingTime: 60, imageCover: "img"
     });
+    recipeId = recipeRes.body._id;
 }));
-afterAll((done) => {
-    done();
-});
+afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield mongoose_1.default.connection.close();
+}));
 describe("Comments API", () => {
-    test("test get all empty db", () => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("Test is running");
-        const response = yield (0, supertest_1.default)(app).get("/comment");
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toEqual([]);
-    }));
-    test("test post comment", () => __awaiter(void 0, void 0, void 0, function* () {
-        //add all comments from commentsData
-        for (const comment of testUtils_1.commentsData) {
-            const response = yield (0, supertest_1.default)(app).post("/comment")
-                .set("Authorization", "Bearer " + testUtils_1.userData.token)
-                .send(comment);
-            if (response.statusCode !== 201) {
-                console.log("comment create response", response.body);
-            }
-            expect(response.statusCode).toBe(201);
-            expect(response.body).toHaveProperty("_id");
-            comment._id = response.body._id;
-        }
-    }));
-    test("test get comments after post", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).get("/comment");
-        if (response.statusCode !== 200) {
-            console.log("get comments response", response.body);
-        }
-        expect(response.statusCode).toBe(200);
-        expect(response.body.length).toBe(testUtils_1.commentsData.length);
-    }));
-    test("test get comments with filter", () => __awaiter(void 0, void 0, void 0, function* () {
-        const recipeId = testUtils_1.commentsData[0].recipe;
-        const response = yield (0, supertest_1.default)(app).get("/comment?recipe=" + recipeId);
-        if (response.statusCode !== 200) {
-            console.log("get comments filtered response", response.body);
-        }
-        expect(response.statusCode).toBe(200);
-        expect(response.body.length).toBe(testUtils_1.commentsData.length);
-        // persist ids from filtered fetch
-        response.body.forEach((item, idx) => {
-            testUtils_1.commentsData[idx]._id = item._id;
+    it("should create a new comment", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app)
+            .post("/comments")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+            comment: "This cake looks amazing!",
+            recipe: recipeId
         });
+        expect(res.status).toBe(201);
+        expect(res.body.comment).toBe("This cake looks amazing!");
+        commentId = res.body._id;
     }));
-    test("test get comment by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).get("/comment/" + testUtils_1.commentsData[4]._id);
-        if (response.statusCode !== 200) {
-            console.log("get comment by id response", response.body);
-        }
-        expect(response.statusCode).toBe(200);
-        expect(response.body._id).toBe(testUtils_1.commentsData[4]._id);
+    it("should get comments for a specific recipe", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app).get(`/comments/recipe/${recipeId}`);
+        expect(res.status).toBe(200);
+        expect(res.body.length).toBe(1);
+        expect(res.body[0].comment).toBe("This cake looks amazing!");
     }));
-    test("test put comment by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        testUtils_1.commentsData[4].comment = "this is the new text";
-        const response = yield (0, supertest_1.default)(app)
-            .put("/comment/" + testUtils_1.commentsData[4]._id)
-            .set("Authorization", "Bearer " + testUtils_1.userData.token)
-            .send(testUtils_1.commentsData[4]);
-        if (response.statusCode !== 200) {
-            console.log("put comment response", response.body);
-        }
-        expect(response.statusCode).toBe(200);
-        expect(response.body.comment).toBe(testUtils_1.commentsData[4].comment);
+    it("should update a comment", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app)
+            .put(`/comments/${commentId}`)
+            .set("Authorization", `Bearer ${token}`)
+            .send({ comment: "Updated comment text" });
+        expect(res.status).toBe(200);
+        expect(res.body.comment).toBe("Updated comment text");
     }));
-    test("test delete comment by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).delete("/comment/" + testUtils_1.commentsData[4]._id)
-            .set("Authorization", "Bearer " + testUtils_1.userData.token);
-        if (response.statusCode !== 200) {
-            console.log("delete comment response", response.body);
-        }
-        expect(response.statusCode).toBe(200);
-        const getResponse = yield (0, supertest_1.default)(app).get("/comment/" + testUtils_1.commentsData[4]._id);
-        expect(getResponse.statusCode).toBe(404);
+    it("should fail to delete a comment without token", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app).delete(`/comments/${commentId}`);
+        expect(res.status).toBe(401);
+    }));
+    it("should delete a comment", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app)
+            .delete(`/comments/${commentId}`)
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.status).toBe(200);
     }));
 });
 //# sourceMappingURL=comments.test.js.map

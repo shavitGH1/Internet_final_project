@@ -2,7 +2,8 @@ import express, { Express } from "express";
 const app = express();
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-dotenv.config({ path: ".env.dev" });
+const envFile = process.env.NODE_ENV === 'test' ? ".env.test" : ".env.dev";
+dotenv.config({ path: envFile });
 import cors from "cors";
 import recipeRoutes from "./routes/recipesRoutes"; 
 import commentRoutes from "./routes/commentRoutes";
@@ -65,6 +66,35 @@ const intApp = () => {
       res.setHeader("Content-Type", "application/json");
       res.send(specs);
     });
+
+    /**
+     * @swagger
+     * /upload:
+     * post:
+     * summary: Upload an image file
+     * description: Uploads a single image file to the server and returns the public URL.
+     * tags: [Upload]
+     * requestBody:
+     * required: true
+     * content:
+     * multipart/form-data:
+     * schema:
+     * type: object
+     * properties:
+     * file:
+     * type: string
+     * format: binary
+     * responses:
+     * 200:
+     * description: File uploaded successfully
+     * content:
+     * application/json:
+     * schema:
+     * type: object
+     * properties:
+     * url:
+     * type: string
+     */
 
     app.post('/upload', upload.single('file'), (req, res) => {
       if (!req.file) {

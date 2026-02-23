@@ -4,14 +4,41 @@ import authMiddleware, { AuthRequest } from '../middleware/authMiddleware';
 
 const router = Router();
 
-// שים לב: שינינו כאן ל- '/update-profile' בלבד
+/**
+ * @swagger
+ * /user/update-profile:
+ * put:
+ * summary: Update user profile
+ * description: Update the authenticated user's username and profile picture
+ * tags: [User]
+ * security:
+ * - bearerAuth: []
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * username:
+ * type: string
+ * profilePic:
+ * type: string
+ * responses:
+ * 200:
+ * description: Profile updated successfully
+ * content:
+ * application/json:
+ * schema:
+ * $ref: '#/components/schemas/User'
+ * 401:
+ * $ref: '#/components/responses/UnauthorizedError'
+ * 404:
+ * $ref: '#/components/responses/NotFoundError'
+ */
 router.put('/update-profile', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    console.log("Request Body:", req.body); 
-    
-    // התיקון הקריטי: שולפים את ה-ID בדיוק כמו שהמידלוור שלך שמר אותו!
     const userId = req.user?._id;
-    console.log("User ID:", userId); 
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized: No user ID found' });
@@ -22,8 +49,8 @@ router.put('/update-profile', authMiddleware, async (req: AuthRequest, res: Resp
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic, username },
-      { new: true } // מחזיר את המסמך המעודכן
-    ).select('-password'); // עדיף לא להחזיר את הסיסמה ל-Frontend
+      { new: true }
+    ).select('-password'); 
 
     if (!updatedUser) {
       return res.status(404).json({ error: 'User not found' });
@@ -31,8 +58,8 @@ router.put('/update-profile', authMiddleware, async (req: AuthRequest, res: Resp
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error("Error in update-profile route:", error); 
-    res.status(500).json({ error: 'Failed to update profile' });
+    console.error("Error in update-profile:", error);
+    res.status(500).json({ error: 'Server error updating profile' });
   }
 });
 

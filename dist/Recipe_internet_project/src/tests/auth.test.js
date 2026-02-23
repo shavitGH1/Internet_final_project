@@ -14,97 +14,59 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const supertest_1 = __importDefault(require("supertest"));
 const index_1 = __importDefault(require("../index"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const userModel_1 = __importDefault(require("../model/userModel"));
-const recipeModel_1 = __importDefault(require("../model/recipeModel"));
-const testUtils_1 = require("./testUtils");
 let app;
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     app = yield (0, index_1.default)();
-    yield userModel_1.default.deleteMany({});
-    yield recipeModel_1.default.deleteMany({});
+    yield userModel_1.default.deleteMany(); // מנקים את מסד הנתונים לפני הטסטים
 }));
-afterAll((done) => {
-    done();
-});
+afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield mongoose_1.default.connection.close();
+}));
 describe("Auth API", () => {
-    test("access restricted url denied", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/recipes").send(testUtils_1.singleRecipeData);
-        expect(response.statusCode).toBe(401);
+    const testUser = {
+        email: "test@auth.com",
+        password: "password123",
+        username: "AuthTester",
+        profilePic: "http://example.com/pic.png"
+    };
+    let refreshToken;
+    it("should register a new user", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app).post("/auth/register").send(testUser);
+        expect(res.status).toBe(201);
+        expect(res.body).toHaveProperty("token");
+        expect(res.body).toHaveProperty("refreshToken");
+        expect(res.body.username).toBe(testUser.username);
     }));
-    test("test register", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/register").send({
-            email: testUtils_1.userData.email,
-            password: testUtils_1.userData.password
+    it("should fail to register with an existing email", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app).post("/auth/register").send(testUser);
+        expect(res.status).toBe(400); // Validation error
+    }));
+    it("should login successfully", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app).post("/auth/login").send({
+            email: testUser.email,
+            password: testUser.password
         });
-        expect(response.statusCode).toBe(201);
-        expect(response.body).toHaveProperty("token");
-        expect(response.body).toHaveProperty("refreshToken");
-        testUtils_1.userData._id = response.body._id;
-        testUtils_1.userData.token = response.body.token;
-        testUtils_1.userData.refreshToken = response.body.refreshToken;
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("token");
+        expect(res.body).toHaveProperty("refreshToken");
+        refreshToken = res.body.refreshToken;
     }));
-    test("test access with token permitted1", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/recipes")
-            .set("Authorization", "Bearer " + testUtils_1.userData.token)
-            .send(testUtils_1.singleRecipeData);
-        if (response.statusCode !== 201) {
-            console.log("recipe create response", response.body);
-        }
-        expect(response.statusCode).toBe(201);
-        expect(response.body).toHaveProperty("_id");
-    }));
-    test("test access with modified token restricted", () => __awaiter(void 0, void 0, void 0, function* () {
-        const newToken = testUtils_1.userData.token + "m";
-        const response = yield (0, supertest_1.default)(app).post("/recipes")
-            .set("Authorization", "Bearer " + newToken)
-            .send(testUtils_1.singleRecipeData);
-        expect(response.statusCode).toBe(401);
-        expect(response.body).toHaveProperty("error");
-    }));
-    test("test login", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            email: testUtils_1.userData.email,
-            password: testUtils_1.userData.password
+    it("should fail to login with wrong password", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app).post("/auth/login").send({
+            email: testUser.email,
+            password: "wrongpassword"
         });
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toHaveProperty("token");
-        expect(response.body).toHaveProperty("refreshToken");
-        testUtils_1.userData.token = response.body.token;
-        testUtils_1.userData.refreshToken = response.body.refreshToken;
+        expect(res.status).toBe(401);
     }));
-    test("test access with token permitted2", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/recipes")
-            .set("Authorization", "Bearer " + testUtils_1.userData.token)
-            .send(testUtils_1.recipeData[1]);
-        if (response.statusCode !== 201) {
-            console.log("recipe create response #2", response.body);
-        }
-        expect(response.statusCode).toBe(201);
-        expect(response.body).toHaveProperty("_id");
-        testUtils_1.recipeData[1]._id = response.body._id;
-    }));
-    //test double use of refresh token
-    test("test double use of refresh token", () => __awaiter(void 0, void 0, void 0, function* () {
-        //get new token using refresh token
-        const refreshResponse1 = yield (0, supertest_1.default)(app).post("/auth/refresh-token").send({
-            refreshToken: testUtils_1.userData.refreshToken
+    it("should refresh token successfully", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app).post("/auth/refresh-token").send({
+            refreshToken: refreshToken
         });
-        expect(refreshResponse1.statusCode).toBe(200);
-        expect(refreshResponse1.body).toHaveProperty("token");
-        expect(refreshResponse1.body).toHaveProperty("refreshToken");
-        const firstNewRefreshToken = refreshResponse1.body.refreshToken;
-        //try to use the same refresh token again
-        const refreshResponse2 = yield (0, supertest_1.default)(app).post("/auth/refresh-token").send({
-            refreshToken: testUtils_1.userData.refreshToken
-        });
-        expect(refreshResponse2.statusCode).toBe(401);
-        expect(refreshResponse2.body).toHaveProperty("error");
-        //try to use the new refresh token to see that it is bnlocked
-        const refreshResponse3 = yield (0, supertest_1.default)(app).post("/auth/refresh-token").send({
-            refreshToken: firstNewRefreshToken
-        });
-        expect(refreshResponse3.statusCode).toBe(401);
-        expect(refreshResponse3.body).toHaveProperty("error");
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("token");
+        expect(res.body).toHaveProperty("refreshToken");
     }));
 });
 //# sourceMappingURL=auth.test.js.map

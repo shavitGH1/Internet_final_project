@@ -1,47 +1,78 @@
-###
+### ---------------- AUTH ---------------- ###
 
-GET http://localhost:3000/recipes
+### Register
+POST http://localhost:3000/auth/register
+Content-Type: application/json
 
-###
+{
+  "email": "test@example.com",
+  "password": "password123",
+  "username": "TestUser",
+  "profilePic": "http://example.com/avatar.png"
+}
 
-GET http://localhost:3000/recipes?difficulty=easy
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
 
-###
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
 
+### ---------------- USER ---------------- ###
+
+### Update Profile
+PUT http://localhost:3000/user/update-profile
+Authorization: Bearer your_jwt_token_here
+Content-Type: application/json
+
+{
+  "username": "UpdatedUsername",
+  "profilePic": "http://example.com/new-avatar.png"
+}
+
+### ---------------- RECIPES ---------------- ###
+
+### Get all recipes (with pagination)
+GET http://localhost:3000/recipes?page=1&limit=6
+
+### Get a specific recipe
 GET http://localhost:3000/recipes/RECIPE_ID
 
-
-###
-
+### Create a new recipe
 POST http://localhost:3000/recipes
 Authorization: Bearer your_jwt_token_here
 Content-Type: application/json
 
 {
   "title": "Spaghetti Carbonara",
+  "description": "Classic Italian pasta dish",
   "ingredients": ["Pasta", "Eggs", "Pancetta", "Parmesan"],
   "steps": ["Boil pasta", "Cook pancetta", "Combine with eggs and cheese"],
   "cookingTime": 30,
-  "imageCover": "cover.jpg",
-  "difficulty": "medium"
+  "imageCover": "http://localhost:3000/uploads/file-123.png"
 }
 
-###
-
-DELETE http://localhost:3000/recipes/RECIPE_ID
-
-###
-
-PUT http://localhost:3000/recipes/RECIPE_ID
+### Update a recipe
+PATCH http://localhost:3000/recipes/RECIPE_ID
+Authorization: Bearer your_jwt_token_here
 Content-Type: application/json
 
 {
-  "title": "Updated Carbonara",
-  "ingredients": ["Pasta", "Eggs", "Pancetta", "Parmesan", "Pepper"],
-  "steps": ["Boil pasta", "Cook pancetta", "Combine"],
-  "cookingTime": 28,
-  "imageCover": "cover-updated.jpg",
-  "difficulty": "easy"
+  "cookingTime": 25
 }
 
+### Delete a recipe
+DELETE http://localhost:3000/recipes/RECIPE_ID
+Authorization: Bearer your_jwt_token_here
 
+### Toggle Favorite
+POST http://localhost:3000/recipes/RECIPE_ID/favorite
+Authorization: Bearer your_jwt_token_here
+
+### ---------------- UPLOAD ---------------- ###
+
+### Upload an image (Needs to be tested via Postman/Frontend since REST Client doesn't support file picking easily)
+POST http://localhost:3000/upload
+Content-Type: multipart/form-data
