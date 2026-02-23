@@ -11,6 +11,7 @@ export interface IRecipe extends Document {
     createdAt: Date;
     favorites: mongoose.Types.ObjectId[]; 
     user: mongoose.Types.ObjectId;
+    commentCount?: number; // הוספנו את השדה החדש לממשק
 }
 
 const recipeSchema: Schema = new mongoose.Schema({
@@ -53,8 +54,18 @@ const recipeSchema: Schema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now // הוספת תאריך יצירה אוטומטי
+        default: Date.now 
     }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+recipeSchema.virtual('commentCount', {
+    ref: 'Comment',         
+    localField: '_id',       
+    foreignField: 'recipe',  
+    count: true              
 });
 
 recipeSchema.index({ title: 1 });

@@ -18,7 +18,6 @@ const MyRecipes: React.FC = () => {
     try {
       setLoading(true);
       const response = await recipesAPI.getAllRecipes();
-      // סינון המתכונים של המשתמש הנוכחי
       const myRecipes = response.data.filter(recipe => 
         recipe.user && typeof recipe.user === 'object' && (recipe.user as any)._id === currentUserId
       );
@@ -65,7 +64,6 @@ const MyRecipes: React.FC = () => {
       ) : (
         <div className="recipes-grid">
           {recipes.map((recipe) => {
-            // פתרון שגיאה 1: המרה ל-any כדי לעקוף את בעיית הטיפוס ב-includes
             const favoritesList = (recipe.favorites || []) as any[];
             const isLiked = favoritesList.includes(currentUserId);
 
@@ -73,7 +71,6 @@ const MyRecipes: React.FC = () => {
               <div key={recipe._id} className="recipe-card" style={{ position: 'relative' }}>
                 <div 
                   className="like-icon-container"
-                  // פתרון שגיאה 2: שימוש ב-! כדי להבטיח ל-TS שה-ID קיים
                   onClick={(e) => handleLike(e, recipe._id!)}
                   style={{
                     position: 'absolute',
@@ -109,12 +106,16 @@ const MyRecipes: React.FC = () => {
 
                   <div className="recipe-content">
                     <h2 className="recipe-title">{recipe.title}</h2>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <p className="recipe-author">
-                        {recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username : 'Me'}
-                      </p>
-                      <span className="likes-count" style={{ fontSize: '0.9rem', color: '#888' }}>
-                        {recipe.favorites?.length || 0} ❤️
+                    <p className="recipe-author">
+                      {recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username : 'Me'}
+                    </p>
+                    
+                    <div className="recipe-card-stats">
+                      <span className="stat-item">
+                        ❤️ {recipe.favorites?.length || 0}
+                      </span>
+                      <span className="stat-item">
+                        💬 {recipe.commentCount || 0}
                       </span>
                     </div>
                   </div>

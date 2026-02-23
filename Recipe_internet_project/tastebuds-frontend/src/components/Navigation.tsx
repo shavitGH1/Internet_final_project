@@ -9,7 +9,6 @@ const Navigation: React.FC = () => {
   const authenticated = isAuthenticated();
   const userEmail = getUserEmail();
   
-  // --- נתונים מה-LocalStorage ---
   const profilePic = localStorage.getItem('profilePic');
   const username = localStorage.getItem('userUsername');
 
@@ -37,12 +36,17 @@ const Navigation: React.FC = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <NavLink to="/" className="nav-logo">
-          🍽️ TasteBuds
-        </NavLink>
+        
+        {/* --- שמאל: לוגו --- */}
+        <div className="nav-left">
+          <NavLink to="/" className="nav-logo">
+            🍽️ TasteBuds
+          </NavLink>
+        </div>
 
-        <div className="nav-menu">
-          {authenticated ? (
+        {/* --- אמצע: קישורים (ימורכז באופן מוחלט) --- */}
+        <div className="nav-center">
+          {authenticated && (
             <>
               <NavLink to="/recipes" className="nav-link">
                 All Recipes
@@ -71,8 +75,14 @@ const Navigation: React.FC = () => {
                   </li>
                 </ul>
               </div>
+            </>
+          )}
+        </div>
 
-              {/* פרופיל משתמש עם תיקון לתמונה שבורה */}
+        {/* --- ימין: פרופיל ופעולות --- */}
+        <div className="nav-right">
+          {authenticated ? (
+            <>
               <NavLink to="/profile" className="nav-profile-link">
                 <img 
                   src={profilePic || '/avatar.png'} 
@@ -89,21 +99,22 @@ const Navigation: React.FC = () => {
                 </span>
               </NavLink>
 
-              <button onClick={handleLogout} className="nav-link logout-btn">
+              <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>
             </>
           ) : (
             <>
-              <NavLink to="/login" className="nav-link">
+              <NavLink to="/login" className="login-btn">
                 Login
               </NavLink>
-              <NavLink to="/register" className="nav-link">
+              <NavLink to="/register" className="register-btn">
                 Register
               </NavLink>
             </>
           )}
         </div>
+
       </div>
     </nav>
   );

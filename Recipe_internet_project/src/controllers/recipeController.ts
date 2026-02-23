@@ -3,8 +3,6 @@ import { Request, Response } from "express";
 import baseController from "./baseController";
 import { AuthRequest } from "../middleware/authMiddleware";
 
-//const recipeController = new baseController(Recipe);
-
 class RecipeController extends baseController {
     constructor() {
         super(Recipe);
@@ -35,7 +33,7 @@ class RecipeController extends baseController {
         const filter = req.query;
         try {
             const query = Object.keys(filter).length > 0 ? this.model.find(filter) : this.model.find();
-            const data = await query.populate('user', '_id email');
+            const data = await query.populate('user', '_id email username profilePic').populate('commentCount');
             res.json(data);
         } catch (error) {
             console.error('Error fetching recipes:', error);
@@ -46,7 +44,7 @@ class RecipeController extends baseController {
     async getById(req: Request, res: Response) {
         const id = req.params.id;
         try {
-            const data = await this.model.findById(id).populate('user', '_id email');
+            const data = await this.model.findById(id).populate('user', '_id email username profilePic').populate('commentCount');
             if (!data) {
                 return res.status(404).json({ error: "Recipe not found" });
             }
@@ -58,7 +56,7 @@ class RecipeController extends baseController {
 
     async post(req: AuthRequest, res: Response) {
         const userId = (req as any).user?._id;
-        req.body.user = userId; // Remove Hebrew comment
+        req.body.user = userId; 
         return super.post(req, res);
     }
 
@@ -107,8 +105,8 @@ class RecipeController extends baseController {
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
         try {
-            const transformedRecipe = req.body; // Assume the transformed recipe is sent in the request body
-            transformedRecipe.user = userId; // Attach the user ID to the recipe
+            const transformedRecipe = req.body; 
+            transformedRecipe.user = userId; 
 
             const newRecipe = new Recipe(transformedRecipe);
             await newRecipe.save();

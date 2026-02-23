@@ -6,7 +6,6 @@
   position: relative;
 }
 
-/* Beautiful gradient background - same as login page */
 .recipes-container::before {
   content: '';
   position: fixed;
@@ -18,7 +17,6 @@
   z-index: -2;
 }
 
-/* Decorative pattern overlay */
 .recipes-container::after {
   content: '';
   position: fixed;
@@ -80,7 +78,10 @@
   border-radius: 12px;
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+  position: relative; 
 }
 
 .recipe-card:hover {
@@ -96,6 +97,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  height: 100%; 
 }
 
 .recipe-thumbnail {
@@ -109,25 +111,31 @@
 .recipe-thumbnail img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; 
   display: block;
+  padding: 0; 
 }
 
+/* המחלקה הזו הייתה חסרה והיא מסדרת את הריווח! */
 .recipe-content {
-  padding: 12px 14px 18px 14px;
+  padding: 20px; 
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; 
+  box-sizing: border-box;
 }
 
 .recipe-title {
   color: #333;
-  margin: 8px 0 6px 0;
-  font-size: 16px;
+  margin: 0 0 5px 0;
+  font-size: 18px;
   font-weight: 700;
 }
 
 .recipe-author {
   color: #ff6b6b;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   margin: 0;
 }
@@ -143,6 +151,7 @@
   font-size: 13px;
   color: #555;
   line-height: 1.6;
+  margin-bottom: 15px; 
 }
 
 .recipe-info p {
@@ -156,6 +165,32 @@
 
 .recipe-info strong {
   color: #333;
+}
+
+/* שורת הסטטיסטיקות */
+.recipe-card-stats {
+  display: flex;
+  justify-content: flex-end; /* דוחף את האייקונים ימינה */
+  align-items: center;
+  gap: 15px;
+  margin-top: auto; /* דוחף את השורה תמיד לתחתית הכרטיס הלבן */
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-item i {
+  font-size: 16px;
+  color: #ff6b6b;
 }
 
 .recipe-actions {
@@ -181,32 +216,38 @@
   transition: all 0.2s;
 }
 
-.view-btn {
-  background: #667eea;
-  color: white;
+.view-btn { background: #667eea; color: white; }
+.view-btn:hover { background: #5568d3; }
+
+.edit-btn { background: #48bb78; color: white; }
+.edit-btn:hover { background: #38a169; }
+
+.delete-btn { background: #f56565; color: white; }
+.delete-btn:hover { background: #e53e3e; }
+
+.like-icon-container {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
+  background: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-.view-btn:hover {
-  background: #5568d3;
+.like-icon-container:hover {
+  transform: scale(1.1);
 }
 
-.edit-btn {
-  background: #48bb78;
-  color: white;
-}
-
-.edit-btn:hover {
-  background: #38a169;
-}
-
-.delete-btn {
-  background: #f56565;
-  color: white;
-}
-
-.delete-btn:hover {
-  background: #e53e3e;
-}
+.bi-heart-fill { color: #ff4d4d; }
+.bi-heart { color: #666; }
 
 .no-recipes {
   text-align: center;
@@ -250,22 +291,10 @@
     flex-direction: column;
     align-items: stretch;
   }
-
-  .add-recipe-btn {
-    text-align: center;
-  }
-
-  .recipes-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .recipe-actions {
-    flex-direction: column;
-  }
-
-  .view-btn,
-  .edit-btn,
-  .delete-btn {
+  .add-recipe-btn { text-align: center; }
+  .recipes-grid { grid-template-columns: repeat(2, 1fr); }
+  .recipe-actions { flex-direction: column; }
+  .view-btn, .edit-btn, .delete-btn {
     flex: unset;
     width: 100%;
   }
@@ -273,37 +302,4 @@
 
 @media (max-width: 480px) {
   .recipes-grid { grid-template-columns: 1fr; }
-}
-
-.recipe-card {
-  position: relative; /* קריטי כדי שהלב יתמקם יחסית לכרטיס */
-}
-
-.like-icon-container {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 10;
-  background: white;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.like-icon-container:hover {
-  transform: scale(1.1);
-}
-
-.bi-heart-fill {
-  color: #ff4d4d;
-}
-
-.bi-heart {
-  color: #666;
 }

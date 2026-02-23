@@ -1,5 +1,5 @@
 /* =========================================
-   1. העיצוב הראשי של ה-Navbar
+   1. בסיס ה-Navbar והקונטיינר
 ========================================= */
 .navbar {
   background: linear-gradient(135deg, #ff7043 0%, #ff4081 50%, #ff6b9d 100%);
@@ -13,20 +13,25 @@
   min-height: 70px; 
 }
 
-/* הפריסה הכללית: מותח את התפריט על כל המסך */
 .nav-container {
   width: 100%;
-  max-width: 100%; 
   padding: 0 40px; 
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* דוחף את הלוגו לשמאל ואת הפרופיל לימין */
+  position: relative; /* חובה כדי שהמרכוז האבסולוטי של האמצע יעבוד */
+}
+
+/* =========================================
+   2. צד שמאל (לוגו) וצד ימין (פרופיל)
+========================================= */
+.nav-left {
   display: flex;
   align-items: center;
 }
 
-/* =========================================
-   2. אזור הלוגו (צד שמאל)
-========================================= */
 .nav-logo {
-  color: white;
+  color: white !important;
   text-decoration: none;
   font-size: 24px;
   font-weight: bold;
@@ -34,28 +39,37 @@
   align-items: center;
   gap: 10px;
   transition: transform 0.2s;
-  flex: 1; /* נותן ללוגו שטח משלו משמאל */
-  justify-content: flex-start;
 }
 
 .nav-logo:hover {
   transform: scale(1.05);
-  color: white;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 /* =========================================
-   3. אמצע התפריט (קישורים ופרופיל)
+   3. אמצע מוחלט (קישורים) + ביטול הטקסט השחור
 ========================================= */
-.nav-menu {
+.nav-center {
   display: flex;
-  gap: 15px;
   align-items: center;
-  justify-content: center; /* ממרכז את הקישורים הפנימיים */
-  flex: 3; /* נותן לאזור הזה את רוב השטח כדי שהקישורים יהיו באמצע */
+  gap: 15px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%); /* ממקם אותם בדיוק במרכז המתמטי של המסך */
 }
 
-.nav-link {
-  color: white;
+/* הפתרון לטקסט השחור בלחיצה */
+.nav-link,
+.nav-link:visited,
+.nav-link:focus,
+.nav-link:active,
+.nav-link.active {
+  color: white !important;
   text-decoration: none;
   font-weight: 600;
   font-size: 16px;
@@ -67,12 +81,14 @@
 }
 
 .nav-link:hover {
-  color: white;
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
+  color: white !important;
 }
 
-/* אזור תמונת הפרופיל והשם - נשאר באמצע ליד הקישורים */
+/* =========================================
+   4. פרופיל משתמש
+========================================= */
 .nav-profile-link {
   display: flex;
   align-items: center;
@@ -102,36 +118,34 @@
 }
 
 /* =========================================
-   4. צד ימין: כפתורי פעולה (התנתקות / התחברות)
+   5. כפתורי פעולה
 ========================================= */
-/* שורת הקסם: דוחפת ספציפית את הכפתורים האלו (וכל מה שאחריהם) לקצה הימני של המסך */
-.logout-btn,
-.login-btn {
-  margin-left: auto !important; 
-}
-
-/* כפתור התנתקות (Logout) */
 .logout-btn {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid white;
   color: white;
   border-radius: 25px;
   font-weight: bold;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
 .logout-btn:hover {
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* כפתור התחברות (Login) לאורחים */
 .login-btn {
   background-color: white !important;
   color: #ff4081 !important;
   border-radius: 25px;
-  padding: 8px 25px !important;
+  padding: 8px 25px;
   font-weight: bold;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   border: 2px solid white;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s;
 }
 
 .login-btn:hover {
@@ -141,12 +155,15 @@
   transform: translateY(-2px);
 }
 
-/* כפתור הרשמה (Register) */
 .register-btn {
   background: transparent !important;
   border: 2px solid white;
+  color: white !important;
   border-radius: 25px;
-  padding: 6px 20px !important;
+  padding: 6px 20px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s;
 }
 
 .register-btn:hover {
@@ -154,7 +171,7 @@
 }
 
 /* =========================================
-   5. תפריט הוספת מתכון (Dropdown)
+   6. תפריט מתכונים (Dropdown)
 ========================================= */
 .nav-item.dropdown {
   position: relative;
@@ -209,36 +226,24 @@
 }
 
 /* =========================================
-   6. התאמה למסכים קטנים (Mobile Responsive)
+   7. רספונסיביות לטלפונים
 ========================================= */
 @media (max-width: 768px) {
   .nav-container {
     flex-direction: column;
     padding: 15px;
+    gap: 15px;
   }
   
-  .nav-logo {
-    margin-right: 0;
-    margin-bottom: 15px;
-    justify-content: center;
-  }
-
-  .nav-menu {
+  .nav-center {
+    position: static; /* מבטל את המרכוז האבסולוטי בטלפון */
+    transform: none;
     flex-wrap: wrap;
     justify-content: center;
-    width: 100%;
-    gap: 10px;
   }
 
-  /* מבטל את ההדיפה האוטומטית ימינה כשאנחנו בטלפון */
-  .logout-btn,
-  .login-btn {
-    margin-left: 0 !important;
-    margin-top: 10px;
-  }
-
-  .nav-avatar {
-    width: 32px !important;
-    height: 32px !important;
+  .nav-right {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }

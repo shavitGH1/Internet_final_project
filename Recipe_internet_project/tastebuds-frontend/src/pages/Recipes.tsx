@@ -28,12 +28,10 @@ const Recipes: React.FC = () => {
     }
   };
 
-  // פונקציית הלייק - זהה לזו שהוספנו ב-MyRecipes
   const handleLike = async (e: React.MouseEvent, recipeId: string) => {
-    e.preventDefault(); // מונע מעבר דף בלחיצה על הלב
+    e.preventDefault(); 
     try {
       const response = await recipesAPI.toggleFavorite(recipeId);
-      // עדכון ה-State המקומי כדי שהלב ייצבע מיד
       setRecipes(prevRecipes => 
         prevRecipes.map(r => 
           r._id === recipeId ? { ...r, favorites: response.data.favorites } : r
@@ -66,14 +64,12 @@ const Recipes: React.FC = () => {
       ) : (
         <div className="recipes-grid">
           {recipes.map((recipe) => {
-            // לוגיקת בדיקת הלייק (עם עקיפת TS כפי שעשינו קודם)
             const favoritesList = (recipe.favorites || []) as any[];
             const isLiked = favoritesList.includes(currentUserId);
 
             return (
               <div key={recipe._id} className="recipe-card" style={{ position: 'relative' }}>
                 
-                {/* כפתור הלב שצף מעל הכרטיס */}
                 <div 
                   className="like-icon-container"
                   onClick={(e) => handleLike(e, recipe._id!)}
@@ -112,15 +108,17 @@ const Recipes: React.FC = () => {
 
                   <div className="recipe-content">
                     <h2 className="recipe-title">{recipe.title}</h2>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      {(() => {
-                        const author = recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username || (recipe.user as any).email : 'Unknown';
-                        return <p className="recipe-author" style={{ margin: 0 }}>{author}</p>;
-                      })()}
-                      
-                      {/* הצגת כמות הלייקים ליד שם הכותב */}
-                      <span className="likes-count" style={{ fontSize: '0.85rem', color: '#888' }}>
-                         {recipe.favorites?.length || 0} ❤️
+                    <p className="recipe-author">
+                      {recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username || (recipe.user as any).email : 'Unknown'}
+                    </p>
+                    
+                    {/* סטטיסטיקות שמסתדרות בצד ימין למטה בזכות ה-CSS */}
+                    <div className="recipe-card-stats">
+                      <span className="stat-item">
+                        ❤️ {recipe.favorites?.length || 0}
+                      </span>
+                      <span className="stat-item">
+                        💬 {recipe.commentCount || 0}
                       </span>
                     </div>
                   </div>

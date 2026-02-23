@@ -13,6 +13,7 @@ export interface Recipe {
   description?: string;
   user?: string | { _id: string; email: string };
   favorites?: string[] | { _id: string }[];
+  commentCount?: number;
   createdAt?: Date;
 }
 
