@@ -4,7 +4,7 @@
   "description": "Recipe sharing application backend",
   "main": "src/index.ts",
   "scripts": {
-    "start": "tsc && node --env-file=.env.dev ./dist/Recipe_internet_project/src/server.js",
+    "start": "tsc && node --env-file=.env.dev ./dist/server.js",    
     "dev": "dotenv -e ./Recipe_internet_project/.env.dev nodemon --exec ts-node ./Recipe_internet_project/src/server.ts",
     "lint": "eslint . --ext .ts",
     "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
