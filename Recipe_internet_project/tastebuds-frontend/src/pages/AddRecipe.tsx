@@ -164,8 +164,14 @@ const AddRecipe: React.FC = () => {
         imageCover: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       };
 
-      await recipesAPI.createRecipe(dataToSend);
-      navigate('/recipes');
+      // הקסם שקורה פה: אנחנו שומרים את התגובה של השרת, שולפים ממנה את ה-ID החדש ומנווטים אליו!
+      const response = await recipesAPI.createRecipe(dataToSend);
+      if (response.data && response.data._id) {
+        navigate(`/recipes/${response.data._id}`);
+      } else {
+        // במידה והשרת משום מה לא החזיר ID, נחזור לדף הראשי כגיבוי
+        navigate('/recipes');
+      }
 
     } catch (err: any) {
       console.error("Error in handleUrlSubmit:", err);
@@ -256,16 +262,24 @@ const AddRecipe: React.FC = () => {
           </form>
         )}
 
+        {/* האזור של חיפוש ה-URL שכולל את האנימציה! */}
         {isUrl && (
-          <form onSubmit={handleUrlSubmit}>
-            <div className="form-group">
-              <label htmlFor="url">Recipe URL *</label>
-              <input type="url" id="url" value={url} onChange={(e) => setUrl(e.target.value)} required className="form-control" placeholder="https://example.com/recipe" />
+          loading ? (
+            <div className="ai-loader-container">
+              <div className="ai-spinner"></div>
+              <p className="ai-loader-text">Fetching your recipe, this might take a few seconds... 🪄</p>
             </div>
-            <button id="submiturl" type="submit" disabled={loading} className="submit-btn">
-              {loading ? 'Processing & Saving...' : 'Add Recipe via URL'}
-            </button>
-          </form>
+          ) : (
+            <form onSubmit={handleUrlSubmit}>
+              <div className="form-group">
+                <label htmlFor="url">Recipe URL *</label>
+                <input type="url" id="url" value={url} onChange={(e) => setUrl(e.target.value)} required className="form-control" placeholder="https://example.com/recipe" />
+              </div>
+              <button id="submiturl" type="submit" disabled={loading} className="submit-btn">
+                Add Recipe via URL
+              </button>
+            </form>
+          )
         )}
 
         {error && <div className="error-message mt-3 text-danger">{error}</div>}

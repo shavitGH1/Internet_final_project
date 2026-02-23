@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { recipesAPI } from '../services/api';
 import './RecipeForm.css';
@@ -24,6 +24,11 @@ const EditRecipe: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingRecipe, setLoadingRecipe] = useState<boolean>(true);
+  
+  // סטייט ורפרנס חדשים עבור העלאת התמונה
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -47,6 +52,8 @@ const EditRecipe: React.FC = () => {
         cookingTime: recipe.cookingTime ? recipe.cookingTime.toString() : '',
         imageCover: recipe.imageCover,
       });
+      // הגדרת התצוגה המקדימה לתמונה הקיימת
+      setImagePreview(recipe.imageCover);
       setError('');
     } catch (err: any) {
       setError('Failed to load recipe. Please try again.');
@@ -62,6 +69,28 @@ const EditRecipe: React.FC = () => {
       ...prev,
       [name]: value,
     }));
+    // אם המשתמש מעדכן את ה-URL ידנית, נעדכן גם את התצוגה המקדימה
+    if (name === 'imageCover') {
+      setImagePreview(value);
+    }
+  };
+
+  // פונקציה שמטפלת בהעלאת התמונה מהמחשב/טלפון
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // מציג למשתמש תצוגה מקדימה מידית
+    const localPreviewUrl = URL.createObjectURL(file);
+    setImagePreview(localPreviewUrl);
+
+    // ממיר את התמונה ל-Base64 כדי לשמור אותה בשרת בתור טקסט בתוך ה-imageCover
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setFormData(prev => ({ ...prev, imageCover: base64String }));
+    };
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -86,25 +115,18 @@ const EditRecipe: React.FC = () => {
       await recipesAPI.updateRecipe(id, dataToSend);
       navigate('/recipes');
     } catch (err: any) {
-      // Extract meaningful error messages from the API response
       let errorMessage = 'Failed to update recipe. Please try again.';
-      
       if (err.response?.data) {
-        // Check for various error formats
         if (err.response.data.message) {
           errorMessage = err.response.data.message;
         } else if (err.response.data.error) {
           errorMessage = err.response.data.error;
-          
-          // Parse validation errors like "Recipe validation failed: field1: error1, field2: error2"
           if (errorMessage.includes('validation failed:')) {
             const validationPart = errorMessage.split('validation failed:')[1];
             if (validationPart) {
-              // Split by comma and format each error
               const errors = validationPart.split(',').map(err => {
                 const parts = err.trim().split(':');
                 if (parts.length >= 2) {
-                  const field = parts[0].trim();
                   const message = parts.slice(1).join(':').trim();
                   return `• ${message}`;
                 }
@@ -117,7 +139,6 @@ const EditRecipe: React.FC = () => {
           errorMessage = err.response.data;
         }
         
-        // If there are validation errors, format them nicely
         if (err.response.data.errors) {
           const errors = err.response.data.errors;
           if (Array.isArray(errors)) {
@@ -161,18 +182,51 @@ const EditRecipe: React.FC = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="imageCover">Image URL *</label>
+          {/* ----- אזור התמונה החדש עם כפתור המצלמה ----- */}
+          <div className="form-group image-upload-group">
+            <label>Recipe Image *</label>
+            
+            <div className="image-preview-container">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Recipe Preview" className="recipe-image-preview" />
+              ) : (
+                <div className="no-image-placeholder">No Image Available</div>
+              )}
+              
+              {/* כפתור המצלמה שפותח את חלון בחירת הקובץ */}
+              <button
+                type="button"
+                className="camera-btn"
+                onClick={() => fileInputRef.current?.click()}
+                title="Upload new image"
+              >
+                📷
+              </button>
+              
+              {/* האינפוט הנסתר של הקובץ */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '8px', marginBottom: '4px' }}>
+              Or paste an image URL directly:
+            </p>
             <input
               type="url"
               id="imageCover"
               name="imageCover"
               value={formData.imageCover}
               onChange={handleChange}
-              required
-              placeholder="Enter image URL"
+              placeholder="https://..."
+              className="url-fallback-input"
             />
           </div>
+          {/* ------------------------------------------- */}
 
           <div className="form-group">
             <label htmlFor="description">Description</label>
