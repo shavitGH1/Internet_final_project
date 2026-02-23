@@ -84,7 +84,11 @@ export const userAPI = {
 };
 
 export const recipesAPI = {
-  getAllRecipes: () => apiClient.get<Recipe[]>('/recipes'),
+  getAllRecipes: (page: number = 1, limit: number = 6, userId?: string) => {
+    let url = `/recipes?page=${page}&limit=${limit}`;
+    if (userId) url += `&user=${userId}`;
+    return apiClient.get<Recipe[]>(url);
+  },
   getRecipeById: (id: string) => apiClient.get<Recipe>(`/recipes/${id}`),
   createRecipe: (recipeData: Partial<Recipe>) => apiClient.post<Recipe>('/recipes', recipeData),
   updateRecipe: (id: string, recipeData: Partial<Recipe>) => 
@@ -103,6 +107,20 @@ export const commentsAPI = {
     
   deleteComment: (commentId: string) => 
     apiClient.delete(`/comments/${commentId}`)
+};
+
+export const fileAPI = {
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    // אקסיוס יודע אוטומטית להגדיר את זה כ-multipart/form-data בגלל ה-FormData
+    const response = await apiClient.post<{url: string}>('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
 };
 
 

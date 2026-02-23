@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FormEvent, ChangeEvent, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { recipesAPI } from '../services/api';
+import { recipesAPI, fileAPI } from '../services/api'; // הוספנו את fileAPI
 import './RecipeForm.css';
 
 interface FormData {
@@ -25,7 +25,6 @@ const EditRecipe: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingRecipe, setLoadingRecipe] = useState<boolean>(true);
   
-  // סטייט ורפרנס חדשים עבור העלאת התמונה
   const [imagePreview, setImagePreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -52,7 +51,6 @@ const EditRecipe: React.FC = () => {
         cookingTime: recipe.cookingTime ? recipe.cookingTime.toString() : '',
         imageCover: recipe.imageCover,
       });
-      // הגדרת התצוגה המקדימה לתמונה הקיימת
       setImagePreview(recipe.imageCover);
       setError('');
     } catch (err: any) {
@@ -69,28 +67,28 @@ const EditRecipe: React.FC = () => {
       ...prev,
       [name]: value,
     }));
-    // אם המשתמש מעדכן את ה-URL ידנית, נעדכן גם את התצוגה המקדימה
     if (name === 'imageCover') {
       setImagePreview(value);
     }
   };
 
-  // פונקציה שמטפלת בהעלאת התמונה מהמחשב/טלפון
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  // --- הפונקציה המעודכנת ששולחת את התמונה לשרת ---
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // מציג למשתמש תצוגה מקדימה מידית
+    // מציג תצוגה מקדימה מידית למשתמש
     const localPreviewUrl = URL.createObjectURL(file);
     setImagePreview(localPreviewUrl);
 
-    // ממיר את התמונה ל-Base64 כדי לשמור אותה בשרת בתור טקסט בתוך ה-imageCover
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setFormData(prev => ({ ...prev, imageCover: base64String }));
-    };
+    try {
+      // שולח את הקובץ לשרת ומקבל את הלינק
+      const response = await fileAPI.uploadImage(file);
+      setFormData(prev => ({ ...prev, imageCover: response.url }));
+    } catch (err) {
+      console.error("Failed to upload image", err);
+      setError("Failed to upload image to server.");
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -182,7 +180,6 @@ const EditRecipe: React.FC = () => {
             />
           </div>
 
-          {/* ----- אזור התמונה החדש עם כפתור המצלמה ----- */}
           <div className="form-group image-upload-group">
             <label>Recipe Image *</label>
             
@@ -193,7 +190,6 @@ const EditRecipe: React.FC = () => {
                 <div className="no-image-placeholder">No Image Available</div>
               )}
               
-              {/* כפתור המצלמה שפותח את חלון בחירת הקובץ */}
               <button
                 type="button"
                 className="camera-btn"
@@ -203,7 +199,6 @@ const EditRecipe: React.FC = () => {
                 📷
               </button>
               
-              {/* האינפוט הנסתר של הקובץ */}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -223,10 +218,10 @@ const EditRecipe: React.FC = () => {
               value={formData.imageCover}
               onChange={handleChange}
               placeholder="https://..."
-              className="url-fallback-input"
+              className="form-control url-fallback-input"
+              required={!imagePreview}
             />
           </div>
-          {/* ------------------------------------------- */}
 
           <div className="form-group">
             <label htmlFor="description">Description</label>

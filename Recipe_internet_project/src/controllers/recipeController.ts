@@ -30,10 +30,25 @@ class RecipeController extends baseController {
     }
 
     async get(req: Request, res: Response) {
-        const filter = req.query;
         try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 6; 
+            
+            const filter = { ...req.query };
+            delete filter.page;
+            delete filter.limit;
+
+            const skip = (page - 1) * limit;
+
             const query = Object.keys(filter).length > 0 ? this.model.find(filter) : this.model.find();
-            const data = await query.populate('user', '_id email username profilePic').populate('commentCount');
+            
+            const data = await query
+                .sort({ createdAt: -1 }) 
+                .skip(skip)
+                .limit(limit)
+                .populate('user', '_id email username profilePic')
+                .populate('commentCount');
+                
             res.json(data);
         } catch (error) {
             console.error('Error fetching recipes:', error);
