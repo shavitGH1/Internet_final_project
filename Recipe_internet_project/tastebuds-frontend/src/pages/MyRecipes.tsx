@@ -8,6 +8,10 @@ const MyRecipes: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  
+  // סטייט לחיפוש במתכונים האישיים
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
   const currentUserId = getCurrentUserId();
 
   useEffect(() => {
@@ -45,6 +49,11 @@ const MyRecipes: React.FC = () => {
     }
   };
 
+  // סינון המתכונים שלי לפי שורת החיפוש
+  const filteredRecipes = recipes.filter(recipe => 
+    recipe.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return <div className="loading">Loading your recipes...</div>;
   }
@@ -55,15 +64,34 @@ const MyRecipes: React.FC = () => {
         <h1>My Recipes</h1>
       </div>
 
+      {/* --- אזור החיפוש החדש --- */}
+      {recipes.length > 0 && (
+        <div className="recipes-controls" style={{ justifyContent: 'center' }}>
+          <div className="search-wrapper" style={{ maxWidth: '600px', width: '100%' }}>
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="🔍 Search my recipes..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
       {error && <div className="error-message">{error}</div>}
 
       {recipes.length === 0 ? (
         <div className="no-recipes">
           <p>You haven't created any recipes yet. Start by adding your first recipe!</p>
         </div>
+      ) : filteredRecipes.length === 0 ? (
+        <div className="no-recipes">
+          <p>No recipes match your search. 🤷‍♂️</p>
+        </div>
       ) : (
         <div className="recipes-grid">
-          {recipes.map((recipe) => {
+          {filteredRecipes.map((recipe) => {
             const favoritesList = (recipe.favorites || []) as any[];
             const isLiked = favoritesList.includes(currentUserId);
 

@@ -298,8 +298,87 @@
     flex: unset;
     width: 100%;
   }
+  
 }
 
 @media (max-width: 480px) {
   .recipes-grid { grid-template-columns: 1fr; }
+}
+/* =========================================
+   Controls: Search & Filter 
+========================================= */
+.recipes-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.search-wrapper {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 14px 25px;
+  border-radius: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 1.05rem;
+  outline: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:focus {
+  border-color: #ff6a88;
+  background: white;
+  box-shadow: 0 8px 25px rgba(255, 106, 136, 0.2);
+}
+
+.filter-btn {
+  padding: 14px 25px;
+  border-radius: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.5);
+  color: #555;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+}
+
+.filter-btn.active {
+  background: #ff6a88;
+  color: white;
+  border-color: #ff6a88;
+  box-shadow: 0 8px 20px rgba(255, 106, 136, 0.3);
+}
+
+.filter-btn.active:hover {
+  background: #ff4081;
+}
+
+/* התאמה למסכים קטנים */
+@media (max-width: 768px) {
+  .recipes-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

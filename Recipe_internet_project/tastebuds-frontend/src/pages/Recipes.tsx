@@ -8,6 +8,11 @@ const Recipes: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  
+  // הסטייטים החדשים לחיפוש וסינון
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showFavorites, setShowFavorites] = useState<boolean>(false);
+  
   const currentUserId = getCurrentUserId();
 
   useEffect(() => {
@@ -42,6 +47,18 @@ const Recipes: React.FC = () => {
     }
   };
 
+  // הלוגיקה שמסננת את המתכונים גם לפי טקסט וגם לפי מועדפים
+  const filteredRecipes = recipes.filter(recipe => {
+    const matchesSearch = recipe.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const favoritesList = (recipe.favorites || []) as any[];
+    const isLiked = favoritesList.includes(currentUserId);
+    
+    if (showFavorites && !isLiked) return false;
+    if (!matchesSearch) return false;
+    
+    return true;
+  });
+
   if (loading) {
     return <div className="loading">Loading recipes...</div>;
   }
@@ -50,6 +67,25 @@ const Recipes: React.FC = () => {
     <div className="recipes-container">
       <div className="recipes-header">
         <h1>All Recipes</h1>
+      </div>
+
+      {/* --- אזור השליטה החדש: חיפוש ופילטר --- */}
+      <div className="recipes-controls">
+        <div className="search-wrapper">
+          <input 
+            type="text" 
+            className="search-input" 
+            placeholder="🔍 Search recipes..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <button 
+          className={`filter-btn ${showFavorites ? 'active' : ''}`}
+          onClick={() => setShowFavorites(!showFavorites)}
+        >
+          {showFavorites ? '❤️ Favorites Only' : '🤍 Show Favorites'}
+        </button>
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -61,15 +97,18 @@ const Recipes: React.FC = () => {
             Add Recipe
           </Link>
         </div>
+      ) : filteredRecipes.length === 0 ? (
+        <div className="no-recipes">
+          <p>No recipes match your search criteria. 🤷‍♂️</p>
+        </div>
       ) : (
         <div className="recipes-grid">
-          {recipes.map((recipe) => {
+          {filteredRecipes.map((recipe) => {
             const favoritesList = (recipe.favorites || []) as any[];
             const isLiked = favoritesList.includes(currentUserId);
 
             return (
               <div key={recipe._id} className="recipe-card" style={{ position: 'relative' }}>
-                
                 <div 
                   className="like-icon-container"
                   onClick={(e) => handleLike(e, recipe._id!)}
@@ -112,7 +151,6 @@ const Recipes: React.FC = () => {
                       {recipe.user && typeof recipe.user === 'object' ? (recipe.user as any).username || (recipe.user as any).email : 'Unknown'}
                     </p>
                     
-                    {/* סטטיסטיקות שמסתדרות בצד ימין למטה בזכות ה-CSS */}
                     <div className="recipe-card-stats">
                       <span className="stat-item">
                         ❤️ {recipe.favorites?.length || 0}
