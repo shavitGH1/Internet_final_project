@@ -1,8 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 const genAI = new GoogleGenAI({ 
-  apiKey: process.env.REACT_APP_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "" 
-});
+apiKey: import.meta.env.VITE_GEMINI_API_KEY || ""});
 
 export const fetchRecipeFromGemini = async (prompt: string) => {
   try {

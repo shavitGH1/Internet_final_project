@@ -39,3 +39,5 @@ Recipe_internet_project/tastebuds-frontend
 
 # Scripts
 scripts/
+
+docker-compose.yaml

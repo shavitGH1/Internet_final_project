@@ -16,7 +16,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-GS11124}
       - JWT_EXPIRES_IN=3600
       - JWT_REFRESH_EXPIRES_IN=86400
-      - GEMINI_API_KEY=AIzaSyAWfellT4nnmmmfHuVOz3jr1KyaVk73Hjc
+      - VITE_GEMINI_API_KEY=AIzaSyBaTnXDqPtAR_adlAf1WDq-PKilHXmf7u8
       - GOOGLE_CLIENT_ID=839760166664-17jklsi9a7dg566r43cco7khftmb7dko.apps.googleusercontent.com
     extra_hosts:
       - "host.docker.internal:host-gateway"
