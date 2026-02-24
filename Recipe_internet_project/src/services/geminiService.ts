@@ -1,18 +1,22 @@
-import { GoogleGenAI } from "@google/genai";
-
-const genAI = new GoogleGenAI({ 
-apiKey: process.env.VITE_GEMINI_API_KEY || ""});
-
 export const fetchRecipeFromGemini = async (prompt: string) => {
   try {
-    const response = await genAI.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: prompt,
+    const response = await fetch("/api/gemini", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt }),
     });
 
-    return response.text; 
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch from server");
+    }
+
+    const data = await response.json();
+    return data.text; 
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini Service Error:", error);
     throw error;
   }
 };

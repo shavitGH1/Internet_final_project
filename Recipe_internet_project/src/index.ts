@@ -2,6 +2,8 @@ import express, { Express } from "express";
 const app = express();
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 if (process.env.NODE_ENV !== 'production') {
   const envFile = process.env.NODE_ENV === 'test' ? ".env.test" : ".env.dev";
   dotenv.config({ path: envFile });
@@ -32,7 +34,6 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-// -----------------------------------
 
 const intApp = () => {
   const promise = new Promise<Express>((resolve, reject) => {
@@ -52,10 +53,6 @@ const intApp = () => {
     app.use((req, res, next) => {
       const startTime = Date.now();
       console.log(`→ [${req.method}] ${req.originalUrl}`);
-      console.log(`  Headers: content-type=${req.headers['content-type']}, content-length=${req.headers['content-length']}`);
-      if (req.body && Object.keys(req.body).length > 0) {
-        console.log(`  Body keys: ${JSON.stringify(Object.keys(req.body))}`);
-      }
       res.on('finish', () => {
         const duration = Date.now() - startTime;
         console.log(`${new Date().toISOString()} [${req.method}] ${req.originalUrl} - Status: ${res.statusCode} - ${duration}ms`);
@@ -74,41 +71,26 @@ const intApp = () => {
       res.send(specs);
     });
 
-    /**
-     * @swagger
-     * /upload:
-     * post:
-     * summary: Upload an image file
-     * description: Uploads a single image file to the server and returns the public URL.
-     * tags: [Upload]
-     * requestBody:
-     * required: true
-     * content:
-     * multipart/form-data:
-     * schema:
-     * type: object
-     * properties:
-     * file:
-     * type: string
-     * format: binary
-     * responses:
-     * 200:
-     * description: File uploaded successfully
-     * content:
-     * application/json:
-     * schema:
-     * type: object
-     * properties:
-     * url:
-     * type: string
-     */
-
     app.post('/upload', upload.single('file'), (req, res) => {
       if (!req.file) {
          return res.status(400).send('No file uploaded.');
       }
       const fullUrl = req.protocol + '://' + req.get('host') + '/uploads/' + req.file.filename;
       res.status(200).json({ url: fullUrl });
+    });
+
+    app.post("/api/gemini", async (req, res) => {
+      try {
+        const { prompt } = req.body;
+        if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+        const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        res.json({ text });
+      } catch (error: any) {
+        res.status(500).json({ error: "Gemini Error", details: error.message });
+      }
     });
 
     app.use("/recipes", recipeRoutes); 
@@ -118,7 +100,6 @@ const intApp = () => {
 
     const dbUri = process.env.MONGODB_URI;
     if (!dbUri) {
-      console.error("MONGODB_URI is not defined in the environment variables.");
       reject(new Error("MONGODB_URI is not defined"));
     } else {
       mongoose
