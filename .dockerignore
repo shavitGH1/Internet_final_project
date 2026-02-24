@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Testing
+coverage
+.nyc_output
+
+# Build outputs
+dist
+
+# Environment files
+.env
+.env.dev
+.env.test
+.env*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Frontend
+Recipe_internet_project/tastebuds-frontend
+
+# Scripts
+scripts/
